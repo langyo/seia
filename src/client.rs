@@ -27,6 +27,19 @@ impl SearchClient {
         Self { http }
     }
 
+    /// Create a client with a proxy (e.g. "http://localhost:7890").
+    /// Also respects HTTPS_PROXY / HTTP_PROXY env vars automatically.
+    pub fn with_proxy(proxy_url: &str) -> Self {
+        let proxy = reqwest::Proxy::all(proxy_url).expect("invalid proxy URL");
+        let http = reqwest::Client::builder()
+            .user_agent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36")
+            .proxy(proxy)
+            .timeout(std::time::Duration::from_secs(15))
+            .build()
+            .expect("failed to build HTTP client with proxy");
+        Self { http }
+    }
+
     /// Search with a specific engine. Returns ranked results.
     pub async fn search(&self, query: &str, engine: Engine) -> Result<SearchResult> {
         self.search_with_options(query, engine, SearchOptions::default()).await

@@ -9,7 +9,7 @@ pub mod client;
 pub mod extractor;
 pub mod result;
 
-pub use client::SearchClient;
+pub use client::{SearchClient, SearchOptions};
 pub use result::{SearchResult, SearchItem, SearchMode};
 pub use engines::Engine;
 

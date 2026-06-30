@@ -31,8 +31,6 @@ fn parse_ddg_html(html: &str) -> Vec<SearchItem> {
     let document = Html::parse_document(html);
     let mut items = Vec::new();
 
-    // DuckDuckGo HTML uses class="result__a" for result links
-    // and class="result__snippet" for snippets
     if let Ok(link_sel) = Selector::parse("a.result__a") {
         let snippet_sel = Selector::parse(".result__snippet").ok();
 
@@ -45,7 +43,6 @@ fn parse_ddg_html(html: &str) -> Vec<SearchItem> {
                 continue;
             }
 
-            // DDG wraps URLs in a redirect; extract the actual URL
             let raw_href = link.value().attr("href").unwrap_or("");
             let url = extract_ddg_url(raw_href);
 
@@ -72,7 +69,6 @@ fn parse_ddg_html(html: &str) -> Vec<SearchItem> {
 
 /// DuckDuckGo wraps URLs in /l/?uddg=... redirect. Extract the real URL.
 fn extract_ddg_url(raw: &str) -> String {
-    // DDG lite/html format: //duckduckgo.com/l/?uddg=<url>&rut=...
     if let Some(start) = raw.find("uddg=") {
         let after = &raw[start + 5..];
         if let Some(end) = after.find('&') {
@@ -82,7 +78,6 @@ fn extract_ddg_url(raw: &str) -> String {
         return urlencoding::decode(after)
             .unwrap_or_else(|_| after.to_string());
     }
-    // Already a clean URL
     if raw.starts_with("http") {
         raw.to_string()
     } else if raw.starts_with("//") {
@@ -92,7 +87,6 @@ fn extract_ddg_url(raw: &str) -> String {
     }
 }
 
-// Minimal URL encoding (avoid pulling in another crate)
 mod urlencoding {
     pub fn encode(input: &str) -> String {
         let mut out = String::with_capacity(input.len() * 3);
@@ -125,5 +119,74 @@ mod urlencoding {
             i += 1;
         }
         String::from_utf8(out)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use scraper::{Html, Selector};
+
+    #[test]
+    fn test_ddg_html_parsing() {
+        let html = r#"
+        <html><body>
+        <div class="result">
+            <h2 class="result__title">
+                <a rel="nofollow" class="result__a" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2Ftest&rut=abc">
+                    Example Test Page
+                </a>
+            </h2>
+            <a class="result__snippet">This is a test snippet about example topics.</a>
+        </div>
+        <div class="result">
+            <h2 class="result__title">
+                <a rel="nofollow" class="result__a" href="https://another.com/page">
+                    Another Page
+                </a>
+            </h2>
+            <a class="result__snippet">Another snippet here.</a>
+        </div>
+        </body></html>
+        "#;
+
+        let items = parse_ddg_html(html);
+        assert_eq!(items.len(), 2);
+        assert_eq!(items[0].title, "Example Test Page");
+        assert_eq!(items[1].title, "Another Page");
+        assert!(items[0].url.contains("example.com"));
+        assert_eq!(items[1].url, "https://another.com/page");
+    }
+
+    #[test]
+    fn test_ddg_url_extraction() {
+        let result = extract_ddg_url("//duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com&rut=abc");
+        assert_eq!(result, "https://example.com");
+
+        let result2 = extract_ddg_url("https://direct.com/page");
+        assert_eq!(result2, "https://direct.com/page");
+
+        let result3 = extract_ddg_url("//cdn.example.com/resource");
+        assert_eq!(result3, "https://cdn.example.com/resource");
+    }
+
+    #[test]
+    fn test_ddg_empty_html() {
+        let html = "<html><body>No results</body></html>";
+        let items = parse_ddg_html(html);
+        assert!(items.is_empty());
+    }
+
+    #[test]
+    fn test_url_encoding() {
+        assert_eq!(urlencoding::encode("hello world"), "hello%20world");
+        assert_eq!(urlencoding::encode("a+b=c"), "a%2Bb%3Dc");
+        assert_eq!(urlencoding::encode("safe123-_.~"), "safe123-_.~");
+    }
+
+    #[test]
+    fn test_url_decoding() {
+        let decoded = urlencoding::decode("https%3A%2F%2Fexample.com%2Fpage").unwrap();
+        assert_eq!(decoded, "https://example.com/page");
     }
 }
