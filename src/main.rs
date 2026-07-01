@@ -4,7 +4,7 @@ use tracing_subscriber::EnvFilter;
 use seia::{Engine, SearchClient};
 
 #[derive(Parser)]
-#[command(name = "seia", about = "Universal search engine abstraction")]
+#[command(name = "seia", about = "One query, every search engine.")]
 struct Cli {
     #[command(subcommand)]
     cmd: Command,
@@ -14,10 +14,8 @@ struct Cli {
 enum Command {
     /// Search the web
     Search {
-        /// Search query
         query: String,
 
-        /// Engine to use
         #[arg(short, long, value_enum, default_value = "duckduckgo")]
         engine: Engine,
 
@@ -32,6 +30,15 @@ enum Command {
         /// Max results
         #[arg(short, long, default_value = "10")]
         limit: usize,
+
+        /// Browser mode: search via tairitsu headless browser.
+        /// Use with engines that need a real browser (google, baidu, bing_web, yandex).
+        #[arg(long)]
+        browser: bool,
+
+        /// tairitsu debug server endpoint (default: http://127.0.0.1:3001)
+        #[arg(long, default_value = "http://127.0.0.1:3001")]
+        tairitsu: String,
     },
 
     /// List available engines
@@ -47,7 +54,44 @@ async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match cli.cmd {
-        Command::Search { query, engine, json, fetch, limit } => {
+        Command::Search { query, engine, json, fetch, limit, browser, tairitsu } => {
+            if browser {
+                // Browser mode: use tairitsu
+                let profile = match engine.as_str() {
+                    "duckduckgo" => seia::profiles::get_profile("google")
+                        .ok_or_else(|| anyhow::anyhow!("no profile"))?,
+                    _ => seia::profiles::get_profile(engine.as_str())
+                        .or_else(|| seia::profiles::get_profile("google"))
+                        .ok_or_else(|| anyhow::anyhow!("no profile for engine {}", engine))?,
+                };
+
+                let client = seia::BrowserClient::new(&tairitsu);
+
+                // Check health
+                if !client.health().await.unwrap_or(false) {
+                    eprintln!("Warning: tairitsu browser not connected at {}", tairitsu);
+                }
+
+                let result = client.search(&query, profile).await?;
+
+                if json {
+                    println!("{}", serde_json::to_string_pretty(&result)?);
+                } else {
+                    println!("Engine: {} (browser) | {} results | {}ms\n",
+                        result.engine, result.items.len(), result.elapsed_ms);
+                    for (i, item) in result.items.iter().enumerate() {
+                        println!("{}. {}", i + 1, item.title);
+                        println!("   {}", item.url);
+                        if let Some(snippet) = &item.snippet {
+                            println!("   {}", truncate(snippet, 120));
+                        }
+                        println!();
+                    }
+                }
+                return Ok(());
+            }
+
+            // API / scrape mode
             let client = SearchClient::new();
             let opts = seia::client::SearchOptions {
                 limit: Some(limit),
