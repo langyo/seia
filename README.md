@@ -8,14 +8,16 @@
   Rust multi-engine web search library and CLI. Free engines work out of the box.
 </p>
 
-<p align="center">
+<div align="center">
+
 [![License: SySL-1.0](https://img.shields.io/badge/License-SySL--1.0-blue.svg)](./LICENSE)
 [![Crates.io](https://img.shields.io/crates/v/seia)](https://docs.rs/seia)
 [![CI](https://img.shields.io/github/actions/workflow/status/celestia-island/seia/checks.yml)](https://github.com/celestia-island/seia/actions/workflows/checks.yml)
 [![Docs](https://img.shields.io/badge/docs-seia.docs.celestia.world-blue)](https://seia.docs.celestia.world)
-</p>
 
-<p align="center">
+</div>
+
+<div align="center">
 <a href="./docs/en/README.md">English</a> ·
 <a href="./docs/zhs/README.md">简体中文</a> ·
 <a href="./docs/zht/README.md">繁體中文</a> ·
@@ -51,7 +53,7 @@ seia search "climate change" --json
 HTTPS_PROXY=http://localhost:7890 seia search "hello world"
 
 # Browser mode (Google/Baidu via tairitsu)
-seia search "query" --engine google --browser
+seia search "query" --browser --browser-engine google
 ```
 
 ### Library
@@ -60,7 +62,7 @@ seia search "query" --engine google --browser
 use seia::{SearchClient, Engine};
 
 let client = SearchClient::new();
-let results = client.search("rust async", Engine::DuckDuckGo).await?;
+let results = client.search("rust async", Engine::Duckduckgo).await?;
 ```
 
 ## Engines

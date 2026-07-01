@@ -45,7 +45,7 @@ seia search "climate change" --json
 HTTPS_PROXY=http://localhost:7890 seia search "hello world"
 
 # 브라우저 모드 (Google/Baidu, tairitsu 경유)
-seia search "query" --engine google --browser
+seia search "query" --browser --browser-engine google
 ```
 
 ### 라이브러리
@@ -54,7 +54,7 @@ seia search "query" --engine google --browser
 use seia::{SearchClient, Engine};
 
 let client = SearchClient::new();
-let results = client.search("rust async", Engine::DuckDuckGo).await?;
+let results = client.search("rust async", Engine::Duckduckgo).await?;
 ```
 
 ## 엔진

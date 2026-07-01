@@ -46,11 +46,6 @@ impl Engine {
     pub fn needs_key(self) -> bool {
         self.api_key_env().is_some()
     }
-
-    /// Whether this engine needs a browser (vs API/scrape).
-    pub fn needs_browser(self) -> bool {
-        matches!(self, Self::Bing)
-    }
 }
 
 impl std::fmt::Display for Engine {

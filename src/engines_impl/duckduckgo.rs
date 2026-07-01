@@ -46,37 +46,67 @@ fn parse_ddg_html(html: &str) -> Vec<SearchItem> {
     let document = Html::parse_document(html);
     let mut items = Vec::new();
 
-    if let Ok(link_sel) = Selector::parse("a.result__a") {
-        let snippet_sel = Selector::parse(".result__snippet").ok();
+    // Container-based parsing: walk .result / .web-result divs so the snippet
+    // always comes from the SAME result as the link (positional nth() misaligns
+    // when a link is skipped).
+    let result_sel = Selector::parse("div.result, div.web-result").ok();
+    let link_sel = match Selector::parse("a.result__a") {
+        Ok(s) => s,
+        Err(_) => return items,
+    };
+    let snippet_sel = Selector::parse(".result__snippet").ok();
 
-        for (i, link) in document.select(&link_sel).enumerate() {
-            if i >= 20 {
+    if let Some(result_sel) = result_sel {
+        for container in document.select(&result_sel) {
+            if items.len() >= 20 {
+                break;
+            }
+            let Some(link) = container.select(&link_sel).next() else {
+                continue;
+            };
+            let title = link.text().collect::<String>().trim().to_string();
+            if title.is_empty() {
+                continue;
+            }
+            let raw_href = link.value().attr("href").unwrap_or("");
+            let url = extract_ddg_url(raw_href);
+            if url.is_empty() {
+                continue;
+            }
+            let snippet = snippet_sel.as_ref().and_then(|s| {
+                container
+                    .select(s)
+                    .next()
+                    .map(|e| e.text().collect::<String>().trim().to_string())
+            });
+            items.push(SearchItem {
+                title,
+                url,
+                snippet,
+                content: None,
+            });
+        }
+    }
+
+    // Fallback: link-only parsing (if DDG changes the container structure).
+    if items.is_empty() {
+        for link in document.select(&link_sel) {
+            if items.len() >= 20 {
                 break;
             }
             let title = link.text().collect::<String>().trim().to_string();
             if title.is_empty() {
                 continue;
             }
-
             let raw_href = link.value().attr("href").unwrap_or("");
             let url = extract_ddg_url(raw_href);
-
-            if url.is_empty() || title.is_empty() {
+            if url.is_empty() {
                 continue;
             }
-
-            // Try to find snippet — use the result__snippet class near this link
-            let snippet = snippet_sel.as_ref().and_then(|snip_sel| {
-                document
-                    .select(snip_sel)
-                    .nth(i)
-                    .map(|s| s.text().collect::<String>().trim().to_string())
-            });
-
             items.push(SearchItem {
                 title,
                 url,
-                snippet,
+                snippet: None,
                 content: None,
             });
         }

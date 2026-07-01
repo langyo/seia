@@ -44,7 +44,7 @@ seia search "气候变化" --json
 HTTPS_PROXY=http://localhost:7890 seia search "hello world"
 
 # 浏览器模式（Google/Baidu 经由 tairitsu）
-seia search "查询" --engine google --browser
+seia search "查询" --browser --browser-engine google
 ```
 
 ### 作为库使用
@@ -53,7 +53,7 @@ seia search "查询" --engine google --browser
 use seia::{SearchClient, Engine};
 
 let client = SearchClient::new();
-let results = client.search("rust 异步", Engine::DuckDuckGo).await?;
+let results = client.search("rust 异步", Engine::Duckduckgo).await?;
 ```
 
 ## 引擎
