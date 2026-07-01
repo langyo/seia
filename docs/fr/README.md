@@ -23,9 +23,9 @@ Recherche web multi-moteurs pour Rust. Les moteurs gratuits fonctionnent immédi
 
 ## Introduction
 
-seia vous permet d'effectuer des recherches sur le web via DuckDuckGo, Tavily, Wikipedia, SearXNG,
-Bing, Brave, Google, Baidu, et plus encore — le tout derrière une seule interface. Les moteurs
-gratuits fonctionnent sans aucune configuration.
+seia est une bibliothèque et un CLI de recherche web multi-moteurs écrit en Rust. Il
+fournit une interface unifiée pour interroger divers backends de recherche. Les moteurs
+qui ne nécessitent pas d'authentification fonctionnent immédiatement sans configuration.
 
 ## Démarrage rapide
 
@@ -57,31 +57,47 @@ let client = SearchClient::new();
 let results = client.search("rust async", Engine::Duckduckgo).await?;
 ```
 
-## Moteurs
-
-| Moteur | Mode | Authentification | État |
-|--------|------|------|--------|
-| DuckDuckGo | Scraping | aucun | ✅ |
-| Wikipedia | API | aucun | ✅ |
-| SearXNG | API | `SEARXNG_URL` | ✅ |
-| Tavily | API | `TAVILY_API_KEY` | ✅ |
-| Bing | API | `BING_SEARCH_API_KEY` | 🔲 |
-| Brave | API | `BRAVE_SEARCH_API_KEY` | 🔲 |
-| Google | Navigateur | tairitsu | ✅ |
-| Baidu | Navigateur | tairitsu | ✅ |
-| Bing Web | Navigateur | tairitsu | ✅ |
-| Yandex | Navigateur | tairitsu | ✅ |
-
-Les moteurs en mode navigateur utilisent [tairitsu](https://github.com/celestia-island/tairitsu)
-pour le rendu headless. Lancez soit un démon autonome, soit activez la fonctionnalité
-`embedded-browser` pour compiler tairitsu dans le processus.
-
 ## Développement
 
 ```bash
 just ci          # fmt-check + clippy + test
 just test        # cargo test
 ```
+
+## Moteurs supportés
+
+### Moteurs API / scraping
+
+| Moteur | Site officiel | Mode | Authentification | Quota gratuit | État |
+|--------|-------------|------|-----------------|-------------|------|
+| DuckDuckGo | [duckduckgo.com](https://duckduckgo.com) | Scraping | aucun | illimité | ✅ |
+| Wikipedia | [wikipedia.org](https://www.wikipedia.org) | API | aucun | illimité | ✅ |
+| SearXNG | [searxng.org](https://searxng.org) | API | `SEARXNG_URL` | auto-hébergé | ✅ |
+| Tavily | [tavily.com](https://tavily.com) | API | `TAVILY_API_KEY` | 1 000/mois | ✅ |
+| Bing | [bing.com](https://www.bing.com) | API | `BING_SEARCH_API_KEY` | 1 000/mois | 🔜 |
+| Brave | [brave.com/search](https://brave.com/search) | API | `BRAVE_SEARCH_API_KEY` | 2 000/mois | 🔜 |
+
+> Les backends API Bing et Brave sont des stubs (non encore implémentés). Utilisez
+> les profils navigateur comme solution temporaire, ou
+> [contribuez](https://github.com/celestia-island/seia).
+
+### Moteurs navigateur (CLI uniquement)
+
+| Moteur | Site officiel | Authentification | Description |
+|--------|-------------|-----------------|-------------|
+| Google | [google.com](https://www.google.com) | aucun (scraping via tairitsu) | Recherche web Google. |
+| Baidu | [baidu.com](https://www.baidu.com) | aucun (scraping via tairitsu) | Recherche web Baidu. |
+| Bing Web | [bing.com](https://www.bing.com) | aucun (scraping via tairitsu) | Résultats web Bing. |
+| Yandex | [yandex.com](https://yandex.com) | aucun (scraping via tairitsu) | Recherche web Yandex. |
+
+Les moteurs en mode navigateur utilisent [tairitsu](https://github.com/celestia-island/tairitsu)
+pour le rendu headless. Lancez soit un démon autonome, soit activez la fonctionnalité
+`embedded-browser` pour compiler tairitsu dans le processus.
+
+> La plupart des moteurs de recherche proposent des API REST officielles. Les profils
+> navigateur sont une solution de contournement pour les moteurs dont le backend API n'est
+> pas encore implémenté, ou lorsque l'API n'est pas disponible gratuitement. À terme,
+> chaque profil navigateur recevra une variante `Engine` avec prise en charge par clé API.
 
 ## Licence
 

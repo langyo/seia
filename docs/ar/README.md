@@ -23,9 +23,8 @@
 
 ## مقدمة
 
-يتيح لك seia البحث في الويب عبر DuckDuckGo وTavily وWikipedia وSearXNG وBing وBrave
-وGoogle وBaidu وغيرها — كلها خلف واجهة واحدة. تعمل المحركات المجانية مباشرةً دون أي
-إعداد.
+seia هي مكتبة وأداة سطر أوامر للبحث متعدد المحركات مكتوبة بلغة Rust. توفر واجهة موحدة
+للاستعلام عن خلفيات بحث متنوعة. المحركات التي لا تتطلب مصادقة تعمل فورًا دون أي إعداد.
 
 ## البداية السريعة
 
@@ -57,31 +56,45 @@ let client = SearchClient::new();
 let results = client.search("rust async", Engine::Duckduckgo).await?;
 ```
 
-## المحركات
-
-| المحرك | الوضع | المصادقة | الحالة |
-|--------|------|------|--------|
-| DuckDuckGo | كشط | بدون | ✅ |
-| Wikipedia | API | بدون | ✅ |
-| SearXNG | API | `SEARXNG_URL` | ✅ |
-| Tavily | API | `TAVILY_API_KEY` | ✅ |
-| Bing | API | `BING_SEARCH_API_KEY` | 🔲 |
-| Brave | API | `BRAVE_SEARCH_API_KEY` | 🔲 |
-| Google | متصفح | tairitsu | ✅ |
-| Baidu | متصفح | tairitsu | ✅ |
-| Bing Web | متصفح | tairitsu | ✅ |
-| Yandex | متصفح | tairitsu | ✅ |
-
-تستخدم محركات وضع المتصفح [tairitsu](https://github.com/celestia-island/tairitsu)
-للعرض بلا واجهة. إمّا شغّل خادمًا خفيًّا مستقلًا، أو فعّل ميزة `embedded-browser`
-لتجميع tairitsu داخل العملية.
-
 ## التطوير
 
 ```bash
 just ci          # fmt-check + clippy + test
 just test        # cargo test
 ```
+
+## المحركات المدعومة
+
+### محركات API / الكشط
+
+| المحرك | الموقع الرسمي | الوضع | المصادقة | الحد المجاني | الحالة |
+|--------|-------------|------|---------|-----------|--------|
+| DuckDuckGo | [duckduckgo.com](https://duckduckgo.com) | كشط | بدون | غير محدود | ✅ |
+| Wikipedia | [wikipedia.org](https://www.wikipedia.org) | API | بدون | غير محدود | ✅ |
+| SearXNG | [searxng.org](https://searxng.org) | API | `SEARXNG_URL` | استضافة ذاتية | ✅ |
+| Tavily | [tavily.com](https://tavily.com) | API | `TAVILY_API_KEY` | 1 000/شهر | ✅ |
+| Bing | [bing.com](https://www.bing.com) | API | `BING_SEARCH_API_KEY` | 1 000/شهر | 🔜 |
+| Brave | [brave.com/search](https://brave.com/search) | API | `BRAVE_SEARCH_API_KEY` | 2 000/شهر | 🔜 |
+
+> خلفيات Bing و Brave API هي هياكل مؤقتة (لم تُنفَّذ بعد). استخدم ملفات المتصفح كحل
+> مؤقت، أو [ساهم](https://github.com/celestia-island/seia).
+
+### محركات المتصفح (CLI فقط)
+
+| المحرك | الموقع الرسمي | المصادقة | الوصف |
+|--------|-------------|---------|-------|
+| Google | [google.com](https://www.google.com) | بدون (كشط عبر tairitsu) | بحث Google على الويب. |
+| Baidu | [baidu.com](https://www.baidu.com) | بدون (كشط عبر tairitsu) | بحث Baidu على الويب. |
+| Bing Web | [bing.com](https://www.bing.com) | بدون (كشط عبر tairitsu) | نتائج Bing على الويب. |
+| Yandex | [yandex.com](https://yandex.com) | بدون (كشط عبر tairitsu) | بحث Yandex على الويب. |
+
+تستخدم محركات وضع المتصفح [tairitsu](https://github.com/celestia-island/tairitsu)
+للعرض بلا واجهة. إمّا شغّل خادمًا خفيًّا مستقلًا، أو فعّل ميزة `embedded-browser`
+لتجميع tairitsu داخل العملية.
+
+> تقدم معظم محركات البحث واجهات REST API رسمية. ملفات المتصفح هي حل بديل للمحركات التي
+> لم يُنفَّذ backend API الخاص بها بعد، أو عندما لا تكون API متاحة مجانًا. على المدى
+> الطويل، سيحصل كل ملف متصفح على متغير `Engine` مطابق مع دعم مفتاح API.
 
 ## الترخيص
 

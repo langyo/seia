@@ -31,9 +31,9 @@
 
 ## Introduction
 
-seia lets you search the web through DuckDuckGo, Tavily, Wikipedia, SearXNG,
-Bing, Brave, Google, Baidu, and more — all behind one interface. Free engines
-work out of the box with zero configuration.
+seia is a multi-engine web search library and CLI written in Rust. It provides
+a unified interface to query diverse search backends. Engines that do not
+require authentication work out of the box with zero configuration.
 
 ## Quick Start
 
@@ -65,47 +65,46 @@ let client = SearchClient::new();
 let results = client.search("rust async", Engine::Duckduckgo).await?;
 ```
 
-## Engines
-
-### API / scrape (in the `Engine` enum — CLI + library)
-
-| Engine | Mode | Auth | Free tier | Status |
-|--------|------|------|-----------|--------|
-| DuckDuckGo | Scrape | None | unlimited | ✅ |
-| Wikipedia | API | None | unlimited | ✅ |
-| SearXNG | API | `SEARXNG_URL` | self-hosted | ✅ |
-| Tavily | API | `TAVILY_API_KEY` | 1 000/month | ✅ |
-| Bing | API | `BING_SEARCH_API_KEY` | 1 000/month | 🔜 |
-| Brave | API | `BRAVE_SEARCH_API_KEY` | 2 000/month | 🔜 |
-
-> Bing and Brave API backends are stubs ("not yet implemented"). Use the
-> browser profiles as a stopgap, or [contribute](https://github.com/celestia-island/seia).
-
-### Browser (CLI-only — `seia search --browser --engine <name>`)
-
-| Profile | Auth | Description |
-|---------|------|-------------|
-| google | None (scrapes via tairitsu) | Google web search. Also has a [paid CSE API](https://developers.google.com/custom-search). |
-| baidu | None (scrapes via tairitsu) | Baidu web search. |
-| bing_web | None (scrapes via tairitsu) | Bing web results. Also has a [paid Search API](https://www.microsoft.com/en-us/bing/apis/bing-web-search-api). |
-| yandex | None (scrapes via tairitsu) | Yandex web search. |
-
-Browser-mode engines use [tairitsu](https://github.com/celestia-island/tairitsu)
-for headless rendering. Either run a standalone daemon or enable the
-`embedded-browser` feature to compile tairitsu in-process.
-
-> Most search engines offer official REST APIs (Google CSE, Bing Search API,
-> Brave Search API). The browser profiles are a workaround for engines whose
-> API backend hasn't been implemented yet, or where the API is not freely
-> available. Long-term, each browser profile gets a matching `Engine` variant
-> with API-key support.
-
 ## Development
 
 ```bash
 just ci          # fmt-check + clippy + test
 just test        # cargo test
 ```
+
+## Supported Search Engines
+
+### API / scrape engines
+
+| Engine | Website | Mode | Auth | Free tier | Status |
+|--------|---------|------|------|-----------|--------|
+| DuckDuckGo | [duckduckgo.com](https://duckduckgo.com) | Scrape | None | unlimited | ✅ |
+| Wikipedia | [wikipedia.org](https://www.wikipedia.org) | API | None | unlimited | ✅ |
+| SearXNG | [searxng.org](https://searxng.org) | API | `SEARXNG_URL` | self-hosted | ✅ |
+| Tavily | [tavily.com](https://tavily.com) | API | `TAVILY_API_KEY` | 1 000/month | ✅ |
+| Bing | [bing.com](https://www.bing.com) | API | `BING_SEARCH_API_KEY` | 1 000/month | 🔜 |
+| Brave | [brave.com/search](https://brave.com/search) | API | `BRAVE_SEARCH_API_KEY` | 2 000/month | 🔜 |
+
+> Bing and Brave API backends are stubs ("not yet implemented"). Use the
+> browser profiles as a stopgap, or [contribute](https://github.com/celestia-island/seia).
+
+### Browser engines (CLI-only)
+
+| Engine | Website | Auth | Description |
+|--------|---------|------|-------------|
+| Google | [google.com](https://www.google.com) | None (scrapes via tairitsu) | Google web search. |
+| Baidu | [baidu.com](https://www.baidu.com) | None (scrapes via tairitsu) | Baidu web search. |
+| Bing Web | [bing.com](https://www.bing.com) | None (scrapes via tairitsu) | Bing web results. |
+| Yandex | [yandex.com](https://yandex.com) | None (scrapes via tairitsu) | Yandex web search. |
+
+Browser-mode engines use [tairitsu](https://github.com/celestia-island/tairitsu)
+for headless rendering. Either run a standalone daemon or enable the
+`embedded-browser` feature to compile tairitsu in-process.
+
+> Most search engines offer official REST APIs. The browser profiles are a
+> workaround for engines whose API backend hasn't been implemented yet, or
+> where the API is not freely available. Long-term, each browser profile gets
+> a matching `Engine` variant with API-key support.
 
 ## License
 

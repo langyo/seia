@@ -23,9 +23,9 @@
 
 ## Введение
 
-seia позволяет искать в сети через DuckDuckGo, Tavily, Wikipedia, SearXNG,
-Bing, Brave, Google, Baidu и другие — всё за одним интерфейсом. Бесплатные
-движки работают сразу и без всякой настройки.
+seia — это мультидвижковая библиотека и CLI для веб-поиска на Rust. Она предоставляет
+единый интерфейс для запросов к различным поисковым бэкендам. Движки, не требующие
+аутентификации, работают сразу без какой-либо настройки.
 
 ## Быстрый старт
 
@@ -57,31 +57,47 @@ let client = SearchClient::new();
 let results = client.search("rust async", Engine::Duckduckgo).await?;
 ```
 
-## Поисковые движки
-
-| Движок | Режим | Аутентификация | Статус |
-|--------|------|------|--------|
-| DuckDuckGo | Парсинг | нет | ✅ |
-| Wikipedia | API | нет | ✅ |
-| SearXNG | API | `SEARXNG_URL` | ✅ |
-| Tavily | API | `TAVILY_API_KEY` | ✅ |
-| Bing | API | `BING_SEARCH_API_KEY` | 🔲 |
-| Brave | API | `BRAVE_SEARCH_API_KEY` | 🔲 |
-| Google | Браузер | tairitsu | ✅ |
-| Baidu | Браузер | tairitsu | ✅ |
-| Bing Web | Браузер | tairitsu | ✅ |
-| Yandex | Браузер | tairitsu | ✅ |
-
-Движки в режиме браузера используют [tairitsu](https://github.com/celestia-island/tairitsu)
-для рендеринга в headless-режиме. Можно либо запустить отдельный демон, либо включить
-функцию `embedded-browser`, чтобы скомпилировать tairitsu прямо в процесс.
-
 ## Разработка
 
 ```bash
 just ci          # fmt-check + clippy + test
 just test        # cargo test
 ```
+
+## Поддерживаемые поисковые движки
+
+### API / парсинг
+
+| Движок | Официальный сайт | Режим | Аутентификация | Бесплатный лимит | Статус |
+|--------|-----------------|------|---------------|-----------------|--------|
+| DuckDuckGo | [duckduckgo.com](https://duckduckgo.com) | Парсинг | нет | безлимитный | ✅ |
+| Wikipedia | [wikipedia.org](https://www.wikipedia.org) | API | нет | безлимитный | ✅ |
+| SearXNG | [searxng.org](https://searxng.org) | API | `SEARXNG_URL` | свой хостинг | ✅ |
+| Tavily | [tavily.com](https://tavily.com) | API | `TAVILY_API_KEY` | 1 000/мес | ✅ |
+| Bing | [bing.com](https://www.bing.com) | API | `BING_SEARCH_API_KEY` | 1 000/мес | 🔜 |
+| Brave | [brave.com/search](https://brave.com/search) | API | `BRAVE_SEARCH_API_KEY` | 2 000/мес | 🔜 |
+
+> API-бэкенды Bing и Brave являются заглушками (пока не реализованы). Используйте
+> браузерные профили как временное решение или
+> [внесите свой вклад](https://github.com/celestia-island/seia).
+
+### Браузерные движки (только CLI)
+
+| Движок | Официальный сайт | Аутентификация | Описание |
+|--------|-----------------|---------------|----------|
+| Google | [google.com](https://www.google.com) | нет (парсинг через tairitsu) | Веб-поиск Google. |
+| Baidu | [baidu.com](https://www.baidu.com) | нет (парсинг через tairitsu) | Веб-поиск Baidu. |
+| Bing Web | [bing.com](https://www.bing.com) | нет (парсинг через tairitsu) | Веб-результаты Bing. |
+| Yandex | [yandex.com](https://yandex.com) | нет (парсинг через tairitsu) | Веб-поиск Yandex. |
+
+Движки в режиме браузера используют [tairitsu](https://github.com/celestia-island/tairitsu)
+для рендеринга в headless-режиме. Можно либо запустить отдельный демон, либо включить
+функцию `embedded-browser`, чтобы скомпилировать tairitsu прямо в процесс.
+
+> Большинство поисковых систем предлагают официальные REST API. Браузерные профили —
+> это обходной путь для движков, чей API-бэкенд ещё не реализован, или когда API
+> недоступен бесплатно. В перспективе каждый браузерный профиль получит соответствующий
+> вариант `Engine` с поддержкой API-ключа.
 
 ## Лицензия
 
