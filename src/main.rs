@@ -19,6 +19,11 @@ enum Command {
         #[arg(short, long, value_enum, default_value = "duckduckgo")]
         engine: Engine,
 
+        /// Browser engine name (when --browser is set): google, baidu, bing_web, yandex.
+        /// Overrides --engine for browser mode.
+        #[arg(long)]
+        browser_engine: Option<String>,
+
         /// Output as JSON
         #[arg(long)]
         json: bool,
@@ -68,6 +73,7 @@ async fn main() -> anyhow::Result<()> {
         Command::Search {
             query,
             engine,
+            browser_engine,
             json,
             fetch,
             limit,
@@ -96,14 +102,13 @@ async fn main() -> anyhow::Result<()> {
                     tairitsu.clone()
                 };
 
-                // Select profile
-                let profile = match engine.as_str() {
-                    "duckduckgo" => seia::profiles::get_profile("google")
-                        .ok_or_else(|| anyhow::anyhow!("no profile"))?,
-                    _ => seia::profiles::get_profile(engine.as_str())
-                        .or_else(|| seia::profiles::get_profile("google"))
-                        .ok_or_else(|| anyhow::anyhow!("no profile for engine {}", engine))?,
-                };
+                // Select profile: --browser-engine overrides --engine
+                let engine_name = browser_engine.as_deref().unwrap_or("google");
+                let profile = seia::profiles::get_profile(engine_name)
+                    .ok_or_else(|| anyhow::anyhow!(
+                        "unknown browser engine '{}'. Options: google, baidu, bing_web, yandex",
+                        engine_name
+                    ))?;
 
                 let client = seia::BrowserClient::new(&endpoint);
 
