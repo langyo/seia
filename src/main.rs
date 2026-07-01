@@ -20,7 +20,6 @@ enum Command {
         engine: Engine,
 
         /// Browser engine name (when --browser is set): google, baidu, bing_web, yandex.
-        /// Overrides --engine for browser mode.
         #[arg(long)]
         browser_engine: Option<String>,
 
@@ -36,23 +35,12 @@ enum Command {
         #[arg(short, long, default_value = "10")]
         limit: usize,
 
-        /// Browser mode: search via tairitsu headless browser.
-        /// Use with engines that need a real browser (google, baidu, bing_web, yandex).
-        /// Requires either an external tairitsu daemon or the `embedded-browser` feature.
+        /// Browser mode: search via embedded tairitsu headless browser.
+        /// Zero external dependencies — browser runs in-process.
         #[arg(long)]
         browser: bool,
 
-        /// tairitsu debug server endpoint (default: http://127.0.0.1:3001)
-        #[arg(long, default_value = "http://127.0.0.1:3001")]
-        tairitsu: String,
-
-        /// Start embedded tairitsu server (requires `embedded-browser` feature).
-        /// If set, ignores --tairitsu and spawns in-process.
-        #[cfg(feature = "embedded-browser")]
-        #[arg(long)]
-        embedded: bool,
-
-        /// Proxy server for the embedded browser (e.g. http://localhost:7890)
+        /// Proxy server for browser (e.g. http://localhost:7890)
         #[arg(long)]
         proxy: Option<String>,
     },
@@ -70,67 +58,36 @@ async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match cli.cmd {
-        Command::Search {
-            query,
-            engine,
-            browser_engine,
-            json,
-            fetch,
-            limit,
-            browser,
-            tairitsu,
-            #[cfg(feature = "embedded-browser")]
-            embedded,
-            proxy,
-        } => {
+        Command::Search { query, engine, browser_engine, json, fetch, limit, browser, proxy } => {
             if browser {
-                // Determine endpoint
-                #[cfg(feature = "embedded-browser")]
-                let endpoint = if embedded {
-                    let port = 3001u16;
-                    seia::embedded::start(port, proxy.as_deref())
-                        .map_err(|e| anyhow::anyhow!("embedded server failed: {}", e))?;
-                    // Wait for browser to connect
-                    tokio::time::sleep(std::time::Duration::from_secs(3)).await;
-                    format!("http://127.0.0.1:{}", port)
-                } else {
-                    tairitsu.clone()
-                };
-                #[cfg(not(feature = "embedded-browser"))]
-                let endpoint = {
-                    let _ = &proxy;
-                    tairitsu.clone()
-                };
+                // Start embedded browser server
+                let port = 3001u16;
+                let endpoint = seia::embedded::start(port, proxy.as_deref())
+                    .map_err(|e| anyhow::anyhow!("embedded server failed: {}", e))?;
 
-                // Select profile: --browser-engine overrides --engine
-                let engine_name = browser_engine.as_deref().unwrap_or("google");
-                let profile = seia::profiles::get_profile(engine_name).ok_or_else(|| {
-                    anyhow::anyhow!(
-                        "unknown browser engine '{}'. Options: google, baidu, bing_web, yandex",
-                        engine_name
-                    )
-                })?;
+                // Wait for browser to connect
+                tokio::time::sleep(std::time::Duration::from_secs(15)).await;
 
                 let client = seia::BrowserClient::new(&endpoint);
-
                 if !client.health().await.unwrap_or(false) {
-                    eprintln!("Warning: tairitsu browser not connected at {}", endpoint);
-                    eprintln!("Start with: tairitsu debug --proxy http://localhost:7890");
-                    #[cfg(feature = "embedded-browser")]
-                    eprintln!("Or use: seia search '...' --browser --embedded");
+                    eprintln!("Warning: browser not ready at {}", endpoint);
                 }
+
+                // Select profile
+                let engine_name = browser_engine.as_deref().unwrap_or("google");
+                let profile = seia::profiles::get_profile(engine_name)
+                    .ok_or_else(|| anyhow::anyhow!(
+                        "unknown browser engine '{}'. Options: google, baidu, bing_web, yandex",
+                        engine_name
+                    ))?;
 
                 let result = client.search(&query, profile).await?;
 
                 if json {
                     println!("{}", serde_json::to_string_pretty(&result)?);
                 } else {
-                    println!(
-                        "Engine: {} (browser) | {} results | {}ms\n",
-                        result.engine,
-                        result.items.len(),
-                        result.elapsed_ms
-                    );
+                    println!("Engine: {} (browser) | {} results | {}ms\n",
+                        result.engine, result.items.len(), result.elapsed_ms);
                     for (i, item) in result.items.iter().enumerate() {
                         println!("{}. {}", i + 1, item.title);
                         println!("   {}", item.url);
@@ -144,45 +101,23 @@ async fn main() -> anyhow::Result<()> {
             }
 
             // API / scrape mode
-            let client = match &proxy {
-                Some(p) => SearchClient::with_proxy(p).unwrap_or_else(|e| {
-                    eprintln!("Warning: invalid --proxy '{p}': {e}; falling back to direct");
-                    SearchClient::new()
-                }),
-                None => SearchClient::new(),
-            };
-            let opts = seia::client::SearchOptions {
+            let client = SearchClient::new();
+            let opts = seia::SearchOptions {
                 limit: Some(limit),
                 fetch_content: fetch,
                 searxng_url: None,
             };
 
-            // Try the requested engine; if it fails, automatically fall back to
-            // Wikipedia (free, no key, reliable) so the user still gets results.
-            let result = match client
-                .search_with_options(&query, engine, opts.clone())
-                .await
-            {
-                Ok(r) => r,
-                Err(e) => {
-                    eprintln!(
-                        "Warning: {} failed ({e}); trying Wikipedia fallback...",
-                        engine
-                    );
-                    client
-                        .search_with_options(&query, Engine::Wikipedia, opts)
-                        .await?
-                }
-            };
+            let result = client
+                .search_with_options(&query, engine, opts)
+                .await?;
 
             if json {
                 println!("{}", serde_json::to_string_pretty(&result)?);
             } else {
                 println!(
                     "Engine: {} | {} results | {}ms\n",
-                    result.engine,
-                    result.items.len(),
-                    result.elapsed_ms
+                    result.engine, result.items.len(), result.elapsed_ms
                 );
                 for (i, item) in result.items.iter().enumerate() {
                     println!("{}. {}", i + 1, item.title);
@@ -206,6 +141,12 @@ async fn main() -> anyhow::Result<()> {
             println!("  wikipedia   — Free, unlimited, academic knowledge");
             println!("  bing        — Bing Search API (BING_SEARCH_API_KEY) [planned]");
             println!("  brave       — Brave Search API (BRAVE_SEARCH_API_KEY) [planned]");
+            println!();
+            println!("Browser engines (--browser flag, zero setup):");
+            println!("  google      — via embedded tairitsu browser");
+            println!("  baidu       — via embedded tairitsu browser");
+            println!("  bing_web    — via embedded tairitsu browser");
+            println!("  yandex      — via embedded tairitsu browser");
         }
     }
 
@@ -214,12 +155,8 @@ async fn main() -> anyhow::Result<()> {
 
 fn truncate(s: &str, max: usize) -> String {
     if s.len() <= max {
-        return s.to_string();
+        s.to_string()
+    } else {
+        format!("{}...", &s[..max])
     }
-    // Walk char boundaries so we never slice mid-codepoint (panics on CJK).
-    let mut end = max;
-    while end > 0 && !s.is_char_boundary(end) {
-        end -= 1;
-    }
-    format!("{}...", &s[..end])
 }

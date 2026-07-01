@@ -32,15 +32,10 @@ url = "^2"
 regex = "^1"
 scraper = "^0.22"
 tokio-stream = "^0.1"
-# Path overrides the local tairitsu checkout during development;
-# `version` is what crates.io resolves when publishing.
-tairitsu-packager = { version = "0.5", path = "../tairitsu/packages/packager", default-features = false, features = ["dev-server", "debug-browser"], optional = true }
+shirabe = { path = "../shirabe" }
 
 [features]
 default = []
-# Embed tairitsu debug server for in-process browser mode.
-# Without this feature, seia connects to an external tairitsu daemon via HTTP.
-embedded-browser = ["tairitsu-packager"]
 
 [dev-dependencies]
 tokio-test = "^0.4"
