@@ -1,8 +1,23 @@
-# seia
+<p align="center"><img src="../logo.webp" alt="seia" width="240" /></p>
 
-**Один запрос, любая поисковая система.**
+<h1 align="center">seia</h1>
+
+<div align="center">
+
+<strong>Один запрос, любая поисковая система.</strong>
 
 Мультидвижковый веб-поиск для Rust. Бесплатные движки работают сразу.
+
+[![License: SySL-1.0](https://img.shields.io/badge/License-SySL--1.0-blue.svg)](../../LICENSE)
+[![CI](https://github.com/celestia-island/seia/actions/workflows/checks.yml/badge.svg)](https://github.com/celestia-island/seia/actions)
+
+[English](../en/README.md) · [简体中文](../zhs/README.md) ·
+[繁體中文](../zht/README.md) · [日本語](../ja/README.md) ·
+[한국어](../ko/README.md) · [Français](../fr/README.md) ·
+[Español](../es/README.md) · **Русский** ·
+[العربية](../ar/README.md)
+
+</div>
 
 ## Введение
 

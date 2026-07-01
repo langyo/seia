@@ -63,22 +63,38 @@ let results = client.search("rust async", Engine::DuckDuckGo).await?;
 
 ## Engines
 
-| Engine | Mode | Auth | Status |
-|--------|------|------|--------|
-| DuckDuckGo | Scrape | None | ✅ |
-| Wikipedia | API | None | ✅ |
-| SearXNG | API | `SEARXNG_URL` | ✅ |
-| Tavily | API | `TAVILY_API_KEY` | ✅ |
-| Bing | API | `BING_SEARCH_API_KEY` | 🔲 |
-| Brave | API | `BRAVE_SEARCH_API_KEY` | 🔲 |
-| Google | Browser | tairitsu | ✅ |
-| Baidu | Browser | tairitsu | ✅ |
-| Bing Web | Browser | tairitsu | ✅ |
-| Yandex | Browser | tairitsu | ✅ |
+### API / scrape (in the `Engine` enum — CLI + library)
+
+| Engine | Mode | Auth | Free tier | Status |
+|--------|------|------|-----------|--------|
+| DuckDuckGo | Scrape | None | unlimited | ✅ |
+| Wikipedia | API | None | unlimited | ✅ |
+| SearXNG | API | `SEARXNG_URL` | self-hosted | ✅ |
+| Tavily | API | `TAVILY_API_KEY` | 1 000/month | ✅ |
+| Bing | API | `BING_SEARCH_API_KEY` | 1 000/month | 🔜 |
+| Brave | API | `BRAVE_SEARCH_API_KEY` | 2 000/month | 🔜 |
+
+> Bing and Brave API backends are stubs ("not yet implemented"). Use the
+> browser profiles as a stopgap, or [contribute](https://github.com/celestia-island/seia).
+
+### Browser (CLI-only — `seia search --browser --engine <name>`)
+
+| Profile | Auth | Description |
+|---------|------|-------------|
+| google | None (scrapes via tairitsu) | Google web search. Also has a [paid CSE API](https://developers.google.com/custom-search). |
+| baidu | None (scrapes via tairitsu) | Baidu web search. |
+| bing_web | None (scrapes via tairitsu) | Bing web results. Also has a [paid Search API](https://www.microsoft.com/en-us/bing/apis/bing-web-search-api). |
+| yandex | None (scrapes via tairitsu) | Yandex web search. |
 
 Browser-mode engines use [tairitsu](https://github.com/celestia-island/tairitsu)
 for headless rendering. Either run a standalone daemon or enable the
 `embedded-browser` feature to compile tairitsu in-process.
+
+> Most search engines offer official REST APIs (Google CSE, Bing Search API,
+> Brave Search API). The browser profiles are a workaround for engines whose
+> API backend hasn't been implemented yet, or where the API is not freely
+> available. Long-term, each browser profile gets a matching `Engine` variant
+> with API-key support.
 
 ## Development
 

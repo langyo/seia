@@ -1,8 +1,23 @@
-# seia
+<p align="center"><img src="../logo.webp" alt="seia" width="240" /></p>
 
-**하나의 쿼리, 모든 검색 엔진.**
+<h1 align="center">seia</h1>
+
+<div align="center">
+
+<strong>하나의 쿼리, 모든 검색 엔진.</strong>
 
 Rust를 위한 다중 엔진 웹 검색 라이브러리입니다. 무료 엔진은 별도 설정 없이 바로 사용할 수 있습니다.
+
+[![License: SySL-1.0](https://img.shields.io/badge/License-SySL--1.0-blue.svg)](../../LICENSE)
+[![CI](https://github.com/celestia-island/seia/actions/workflows/checks.yml/badge.svg)](https://github.com/celestia-island/seia/actions)
+
+[English](../en/README.md) · [简体中文](../zhs/README.md) ·
+[繁體中文](../zht/README.md) · [日本語](../ja/README.md) ·
+**한국어** · [Français](../fr/README.md) ·
+[Español](../es/README.md) · [Русский](../ru/README.md) ·
+[العربية](../ar/README.md)
+
+</div>
 
 ## 소개
 
