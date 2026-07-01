@@ -9,7 +9,6 @@
 - [クイックスタート](./guides/quickstart.md)
 - [エンジン](./guides/engines.md)
 - [ライブラリの使い方](./guides/library.md)
-- [ブラウザモード](./guides/browser-mode.md)
 
 ---
 

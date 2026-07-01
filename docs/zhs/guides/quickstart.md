@@ -43,11 +43,11 @@ seia search "开源许可证" --engine searxng
 
 ## 通过代理
 
+`SearchClient` 通过 reqwest 遵循标准的 `HTTPS_PROXY` / `HTTP_PROXY` 环境变量 ——
+无需任何额外参数：
+
 ```bash
 HTTPS_PROXY=http://localhost:7890 seia search "hello world"
-
-# 或显式指定
-seia search "hello world" --proxy http://localhost:7890
 ```
 
 ## 作为库使用

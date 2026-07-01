@@ -43,11 +43,11 @@ seia search "open source licenses" --engine searxng
 
 ## عبر وكيل (proxy)
 
+يحترم `SearchClient` متغيّرات البيئة القياسية `HTTPS_PROXY` / `HTTP_PROXY` عبر
+reqwest — لا حاجة لأي علامة (flag):
+
 ```bash
 HTTPS_PROXY=http://localhost:7890 seia search "hello world"
-
-# أو صراحةً
-seia search "hello world" --proxy http://localhost:7890
 ```
 
 ## استخدامه كمكتبة

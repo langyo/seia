@@ -1,37 +1,46 @@
 # 引擎
 
-seia 通过单一的 [`Engine`](https://github.com/celestia-island/seia/blob/dev/src/engines.rs)
-枚举暴露所有后端，因此切换后端永远不会影响你的查询代码。
+seia 支持 8 个后端，全部经由各自官方的 HTTP API（在没有官方 API 时，则进行轻量 HTML
+抓取）。seia 不内置任何无头浏览器 —— 它是一个纯粹的 HTTP 客户端，因此每个引擎在 CLI
+与库中都通过同一个 `Engine` 枚举使用。
 
-## 三种执行模式
+大多数引擎提供免费额度；需要密钥的引擎会从文档中约定的环境变量读取，所以代码或 CLI
+参数里永远不会出现密钥。
+
+## 两种执行模式
 
 | 模式 | 工作方式 | 引擎 |
 | --- | --- | --- |
-| **API** | 调用搜索服务商的 HTTP API 并解析 JSON。 | Tavily、SearXNG、Wikipedia |
-| **爬取** | 抓取 HTML 结果页并提取命中。 | DuckDuckGo |
-| **浏览器** | 驱动无头浏览器（经由 [tairitsu](https://github.com/celestia-island/tairitsu)）渲染 JS 密集型页面。 | Google、Baidu、Bing（网页）、Yandex |
-
-API 与爬取模式只需要一个 HTTP 客户端。浏览器模式见
-[浏览器模式](./browser-mode.md)。
+| **API** | 调用搜索服务商的 HTTP API 并解析 JSON。 | Tavily、SearXNG、Wikipedia、Bing、Brave、智谱、博查 |
+| **爬取** | 抓取轻量 HTML 结果页并提取命中。 | DuckDuckGo |
 
 ## 引擎矩阵
 
-| 引擎 | 枚举值 | 模式 | 认证 | 免费额度 |
-| --- | --- | --- | --- | --- |
-| DuckDuckGo | `Duckduckgo` | 爬取 | 无 | 无限 |
-| Wikipedia | `Wikipedia` | API | 无 | 无限 |
-| SearXNG | `Searxng` | API | `SEARXNG_URL` | 自建 |
-| Tavily | `Tavily` | API | `TAVILY_API_KEY` | 1000 / 月 |
-| Bing | `Bing` | API | `BING_SEARCH_API_KEY` | 1000 / 月 |
-| Brave | `Brave` | API | `BRAVE_SEARCH_API_KEY` | 2000 / 月 |
-| Google | 浏览器 profile | 浏览器 | tairitsu | — |
-| Baidu | 浏览器 profile | 浏览器 | tairitsu | — |
-| Bing（网页） | 浏览器 profile | 浏览器 | tairitsu | — |
-| Yandex | 浏览器 profile | 浏览器 | tairitsu | — |
+### 国际
 
-> Bing 与 Brave 的 API 后端目前是占位实现（`Engine::Bing` / `Engine::Brave`
-> 会返回 "not yet implemented" 错误）。请使用浏览器 profile，或
-> [贡献](https://github.com/celestia-island/seia) 实现。
+| 引擎 | 枚举值 | 模式 | 认证 | 免费额度 | 状态 |
+| --- | --- | --- | --- | --- | --- |
+| DuckDuckGo | `Duckduckgo` | 爬取 | 无 | 无限 | ✅ |
+| Wikipedia | `Wikipedia` | API | 无 | 无限 | ✅ |
+| SearXNG | `Searxng` | API | `SEARXNG_URL` | 自建 | ✅ |
+| Tavily | `Tavily` | API | `TAVILY_API_KEY` | 1 000 / 月 | ✅ |
+| Bing | `Bing` | API | `BING_SEARCH_API_KEY` | 1 000 / 月 | ✅ |
+| Brave | `Brave` | API | `BRAVE_SEARCH_API_KEY` | 2 000 / 月 | ✅ |
+
+### 国内（中国）
+
+| 引擎 | 枚举值 | 模式 | 认证 | 状态 |
+| --- | --- | --- | --- | --- |
+| 智谱（Zhipu / BigModel） | `Zhipu` | API | `ZHIPU_API_KEY` | ✅ |
+| 博查（Bocha） | `Bocha` | API | `BOCHA_API_KEY` | ✅ |
+
+> 智谱的 Web Search API 可经由若干底层引擎之一路由 —— 智谱基础版
+> （`search_std`，默认）、智谱高阶版（`search_pro`）、搜狗
+> （`search_pro_sogou`）或夸克（`search_pro_quark`）。用 `ZHIPU_SEARCH_ENGINE`
+> 环境变量选择其一。
+
+> 博查对每个页面会同时返回简短的 `snippet` 和较长的、由 LLM 生成的 `summary`；seia
+> 取其中较长者作为结果的 `snippet`。
 
 ## 选择引擎
 
@@ -39,6 +48,7 @@ CLI：
 
 ```bash
 seia search "查询" --engine wikipedia
+seia search "查询" --engine zhipu      # 需要 ZHIPU_API_KEY
 ```
 
 库：
@@ -48,17 +58,18 @@ use seia::{SearchClient, Engine};
 
 let client = SearchClient::new();
 client.search("查询", Engine::Wikipedia).await?;
+client.search("查询", Engine::Zhipu).await?;   // 需要 ZHIPU_API_KEY
 ```
 
 ## 查询引擎元信息
 
-`Engine` 自带元信息，因此无需硬编码即可构建 UI：
+`Engine` 自带元信息：
 
 ```rust
 use seia::Engine;
 
-for engine in [Engine::Duckduckgo, Engine::Tavily, Engine::Bing] {
-    println!("{:?}", engine);                 // duckduckgo / tavily / bing
+for engine in [Engine::Duckduckgo, Engine::Tavily, Engine::Bing, Engine::Zhipu] {
+    println!("{:?}", engine);                 // duckduckgo / tavily / bing / zhipu
     println!("  需要密钥? {}", engine.needs_key());
     println!("  密钥环境变量: {:?}", engine.api_key_env());
 }

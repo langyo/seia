@@ -45,9 +45,6 @@ seia search "開源授權" --engine searxng
 
 ```bash
 HTTPS_PROXY=http://localhost:7890 seia search "hello world"
-
-# 或明確指定
-seia search "hello world" --proxy http://localhost:7890
 ```
 
 ## 作為函式庫使用

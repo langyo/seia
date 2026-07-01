@@ -45,9 +45,6 @@ seia search "open source licenses" --engine searxng
 
 ```bash
 HTTPS_PROXY=http://localhost:7890 seia search "hello world"
-
-# o explícitamente
-seia search "hello world" --proxy http://localhost:7890
 ```
 
 ## Usarlo como biblioteca

@@ -40,9 +40,6 @@ seia search "climate change" --json
 
 # عبر وكيل (proxy)
 HTTPS_PROXY=http://localhost:7890 seia search "hello world"
-
-# وضع المتصفح (بدون واجهة، بلا مفتاح API)
-seia search "query" --browser --browser-engine google
 ```
 
 ### المكتبة
@@ -63,7 +60,10 @@ just test        # cargo test
 
 ## المحركات المدعومة
 
-### محركات API / الكشط
+تمرّ جميع المحركات عبر واجهة HTTP API الرسمية الخاصة بها (أو، حيث لا توجد واجهة، عبر
+كشط HTML خفيف). لا يُضمَّن أي متصفح بلا واجهة — seia هو عميل HTTP نقي.
+
+### دولي
 
 | المحرك | الموقع الرسمي | الوضع | المصادقة | الحد المجاني | الحالة |
 |--------|-------------|------|---------|-----------|--------|
@@ -71,28 +71,19 @@ just test        # cargo test
 | Wikipedia | [wikipedia.org](https://www.wikipedia.org) | API | بدون | غير محدود | ✅ |
 | SearXNG | [searxng.org](https://searxng.org) | API | `SEARXNG_URL` | استضافة ذاتية | ✅ |
 | Tavily | [tavily.com](https://tavily.com) | API | `TAVILY_API_KEY` | 1 000/شهر | ✅ |
-| Bing | [bing.com](https://www.bing.com) | API | `BING_SEARCH_API_KEY` | 1 000/شهر | 🔜 |
-| Brave | [brave.com/search](https://brave.com/search) | API | `BRAVE_SEARCH_API_KEY` | 2 000/شهر | 🔜 |
+| Bing | [bing.com](https://www.bing.com) | API | `BING_SEARCH_API_KEY` | 1 000/شهر | ✅ |
+| Brave | [brave.com/search](https://brave.com/search) | API | `BRAVE_SEARCH_API_KEY` | 2 000/شهر | ✅ |
 
-> خلفيات Bing و Brave API هي هياكل مؤقتة (لم تُنفَّذ بعد). استخدم ملفات المتصفح كحل
-> مؤقت، أو [ساهم](https://github.com/celestia-island/seia).
+### محلي (الصين)
 
-### محركات المتصفح (CLI فقط)
+| المحرك | الموقع الرسمي | الوضع | المصادقة | الحالة |
+|--------|-------------|------|---------|--------|
+| 智谱 (Zhipu) | [bigmodel.cn](https://bigmodel.cn) | API | `ZHIPU_API_KEY` | ✅ |
+| 博查 (Bocha) | [open.bochaai.com](https://open.bochaai.com) | API | `BOCHA_API_KEY` | ✅ |
 
-| المحرك | الموقع الرسمي | المصادقة | الوصف |
-|--------|-------------|---------|-------|
-| Google | [google.com](https://www.google.com) | بدون (كشط عبر tairitsu) | بحث Google على الويب. |
-| Baidu | [baidu.com](https://www.baidu.com) | بدون (كشط عبر tairitsu) | بحث Baidu على الويب. |
-| Bing Web | [bing.com](https://www.bing.com) | بدون (كشط عبر tairitsu) | نتائج Bing على الويب. |
-| Yandex | [yandex.com](https://yandex.com) | بدون (كشط عبر tairitsu) | بحث Yandex على الويب. |
-
-تستخدم محركات وضع المتصفح [tairitsu](https://github.com/celestia-island/tairitsu)
-للعرض بلا واجهة. إمّا شغّل خادمًا خفيًّا مستقلًا، أو فعّل ميزة `embedded-browser`
-لتجميع tairitsu داخل العملية.
-
-> تقدم معظم محركات البحث واجهات REST API رسمية. ملفات المتصفح هي حل بديل للمحركات التي
-> لم يُنفَّذ backend API الخاص بها بعد، أو عندما لا تكون API متاحة مجانًا. على المدى
-> الطويل، سيحصل كل ملف متصفح على متغير `Engine` مطابق مع دعم مفتاح API.
+> يوجّه 智谱 الطلب عبر إحدى عدّة محركات خلفية (智谱基础版/高阶版، 搜狗، 夸克). اختر
+> إحداها بمتغيّر البيئة `ZHIPU_SEARCH_ENGINE` (`search_std` افتراضيًا؛ وكذلك
+> `search_pro`، `search_pro_sogou`، `search_pro_quark`).
 
 ## الترخيص
 

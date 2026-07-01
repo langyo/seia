@@ -41,9 +41,6 @@ seia search "climate change" --json
 
 # Через прокси
 HTTPS_PROXY=http://localhost:7890 seia search "hello world"
-
-# Режим браузера (headless, без API-ключа)
-seia search "query" --browser --browser-engine google
 ```
 
 ### Библиотека
@@ -64,7 +61,11 @@ just test        # cargo test
 
 ## Поддерживаемые поисковые движки
 
-### API / парсинг
+Все движки обращаются к своему официальному HTTP-API (или, при отсутствии API,
+к лёгкому парсингу HTML). Никакого headless-браузера не прилагается — seia —
+это чистый HTTP-клиент.
+
+### Международные
 
 | Движок | Официальный сайт | Режим | Аутентификация | Бесплатный лимит | Статус |
 |--------|-----------------|------|---------------|-----------------|--------|
@@ -72,30 +73,20 @@ just test        # cargo test
 | Wikipedia | [wikipedia.org](https://www.wikipedia.org) | API | нет | безлимитный | ✅ |
 | SearXNG | [searxng.org](https://searxng.org) | API | `SEARXNG_URL` | свой хостинг | ✅ |
 | Tavily | [tavily.com](https://tavily.com) | API | `TAVILY_API_KEY` | 1 000/мес | ✅ |
-| Bing | [bing.com](https://www.bing.com) | API | `BING_SEARCH_API_KEY` | 1 000/мес | 🔜 |
-| Brave | [brave.com/search](https://brave.com/search) | API | `BRAVE_SEARCH_API_KEY` | 2 000/мес | 🔜 |
+| Bing | [bing.com](https://www.bing.com) | API | `BING_SEARCH_API_KEY` | 1 000/мес | ✅ |
+| Brave | [brave.com/search](https://brave.com/search) | API | `BRAVE_SEARCH_API_KEY` | 2 000/мес | ✅ |
 
-> API-бэкенды Bing и Brave являются заглушками (пока не реализованы). Используйте
-> браузерные профили как временное решение или
-> [внесите свой вклад](https://github.com/celestia-island/seia).
+### Национальные (Китай)
 
-### Браузерные движки (только CLI)
+| Движок | Официальный сайт | Режим | Аутентификация | Статус |
+|--------|-----------------|------|---------------|--------|
+| 智谱 (Zhipu) | [bigmodel.cn](https://bigmodel.cn) | API | `ZHIPU_API_KEY` | ✅ |
+| 博查 (Bocha) | [open.bochaai.com](https://open.bochaai.com) | API | `BOCHA_API_KEY` | ✅ |
 
-| Движок | Официальный сайт | Аутентификация | Описание |
-|--------|-----------------|---------------|----------|
-| Google | [google.com](https://www.google.com) | нет (парсинг через tairitsu) | Веб-поиск Google. |
-| Baidu | [baidu.com](https://www.baidu.com) | нет (парсинг через tairitsu) | Веб-поиск Baidu. |
-| Bing Web | [bing.com](https://www.bing.com) | нет (парсинг через tairitsu) | Веб-результаты Bing. |
-| Yandex | [yandex.com](https://yandex.com) | нет (парсинг через tairitsu) | Веб-поиск Yandex. |
-
-Движки в режиме браузера используют [tairitsu](https://github.com/celestia-island/tairitsu)
-для рендеринга в headless-режиме. Можно либо запустить отдельный демон, либо включить
-функцию `embedded-browser`, чтобы скомпилировать tairitsu прямо в процесс.
-
-> Большинство поисковых систем предлагают официальные REST API. Браузерные профили —
-> это обходной путь для движков, чей API-бэкенд ещё не реализован, или когда API
-> недоступен бесплатно. В перспективе каждый браузерный профиль получит соответствующий
-> вариант `Engine` с поддержкой API-ключа.
+> 智谱 маршрутизируется через один из нескольких нижележащих движков (智谱基础版/高阶版,
+> 搜狗, 夸克). Выберите нужный через переменную окружения `ZHIPU_SEARCH_ENGINE`
+> (`search_std` по умолчанию; также `search_pro`, `search_pro_sogou`,
+> `search_pro_quark`).
 
 ## Лицензия
 

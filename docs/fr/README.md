@@ -41,9 +41,6 @@ seia search "climate change" --json
 
 # Via un proxy
 HTTPS_PROXY=http://localhost:7890 seia search "hello world"
-
-# Mode navigateur (headless, sans clé API)
-seia search "query" --browser --browser-engine google
 ```
 
 ### Bibliothèque
@@ -62,40 +59,34 @@ just ci          # fmt-check + clippy + test
 just test        # cargo test
 ```
 
-## Moteurs supportés
+## Moteurs de recherche supportés
 
-### Moteurs API / scraping
+Tous les moteurs passent par leur API HTTP officielle (ou, lorsqu'aucune n'existe,
+par un léger scraping HTML). Aucun navigateur headless n'est embarqué — seia est
+un pur client HTTP.
+
+### International
 
 | Moteur | Site officiel | Mode | Authentification | Quota gratuit | État |
 |--------|-------------|------|-----------------|-------------|------|
 | DuckDuckGo | [duckduckgo.com](https://duckduckgo.com) | Scraping | aucun | illimité | ✅ |
 | Wikipedia | [wikipedia.org](https://www.wikipedia.org) | API | aucun | illimité | ✅ |
 | SearXNG | [searxng.org](https://searxng.org) | API | `SEARXNG_URL` | auto-hébergé | ✅ |
-| Tavily | [tavily.com](https://tavily.com) | API | `TAVILY_API_KEY` | 1 000/mois | ✅ |
-| Bing | [bing.com](https://www.bing.com) | API | `BING_SEARCH_API_KEY` | 1 000/mois | 🔜 |
-| Brave | [brave.com/search](https://brave.com/search) | API | `BRAVE_SEARCH_API_KEY` | 2 000/mois | 🔜 |
+| Tavily | [tavily.com](https://tavily.com) | API | `TAVILY_API_KEY` | 1 000/mois | ✅ |
+| Bing | [bing.com](https://www.bing.com) | API | `BING_SEARCH_API_KEY` | 1 000/mois | ✅ |
+| Brave | [brave.com/search](https://brave.com/search) | API | `BRAVE_SEARCH_API_KEY` | 2 000/mois | ✅ |
 
-> Les backends API Bing et Brave sont des stubs (non encore implémentés). Utilisez
-> les profils navigateur comme solution temporaire, ou
-> [contribuez](https://github.com/celestia-island/seia).
+### National (Chine)
 
-### Moteurs navigateur (CLI uniquement)
+| Moteur | Site officiel | Mode | Authentification | État |
+|--------|-------------|------|-----------------|------|
+| 智谱 (Zhipu) | [bigmodel.cn](https://bigmodel.cn) | API | `ZHIPU_API_KEY` | ✅ |
+| 博查 (Bocha) | [open.bochaai.com](https://open.bochaai.com) | API | `BOCHA_API_KEY` | ✅ |
 
-| Moteur | Site officiel | Authentification | Description |
-|--------|-------------|-----------------|-------------|
-| Google | [google.com](https://www.google.com) | aucun (scraping via tairitsu) | Recherche web Google. |
-| Baidu | [baidu.com](https://www.baidu.com) | aucun (scraping via tairitsu) | Recherche web Baidu. |
-| Bing Web | [bing.com](https://www.bing.com) | aucun (scraping via tairitsu) | Résultats web Bing. |
-| Yandex | [yandex.com](https://yandex.com) | aucun (scraping via tairitsu) | Recherche web Yandex. |
-
-Les moteurs en mode navigateur utilisent [tairitsu](https://github.com/celestia-island/tairitsu)
-pour le rendu headless. Lancez soit un démon autonome, soit activez la fonctionnalité
-`embedded-browser` pour compiler tairitsu dans le processus.
-
-> La plupart des moteurs de recherche proposent des API REST officielles. Les profils
-> navigateur sont une solution de contournement pour les moteurs dont le backend API n'est
-> pas encore implémenté, ou lorsque l'API n'est pas disponible gratuitement. À terme,
-> chaque profil navigateur recevra une variante `Engine` avec prise en charge par clé API.
+> 智谱 route via l'un de plusieurs moteurs sous-jacents (智谱基础版/高阶版, 搜狗,
+> 夸克). Choisissez-en un avec la variable d'environnement `ZHIPU_SEARCH_ENGINE`
+> (`search_std` par défaut ; également `search_pro`, `search_pro_sogou`,
+> `search_pro_quark`).
 
 ## Licence
 

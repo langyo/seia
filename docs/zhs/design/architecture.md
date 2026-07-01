@@ -1,47 +1,45 @@
 # 架构
 
 seia 是单一 crate，同时提供库（`src/lib.rs`）与 CLI（`src/main.rs`）。设计目标是
-**一个查询入口，多个后端**：调用方选择一个 `Engine`，无论结果如何取得，都拿到同一个
-`SearchResult`。
+**一个查询入口，多个后端**：调用方选择一个 `Engine`，无论结果由哪个后端产生，都拿到
+同一个 `SearchResult`。
 
 ## 模块地图
 
 ```
 src/
-├── lib.rs          公开 API 面 + embedded-browser 服务
+├── lib.rs          公开 API 面
 ├── main.rs         clap CLI（search / engines）
-├── engines.rs      Engine 枚举：as_str、api_key_env、needs_key、needs_browser
-├── engines_impl/   每个 API/爬取后端一个模块
+├── engines.rs      Engine 枚举：as_str、api_key_env、needs_key
+├── engines_impl/   每个后端一个模块
 │   ├── duckduckgo.rs   爬取（HTML）
 │   ├── wikipedia.rs    API（JSON）
 │   ├── tavily.rs       API（JSON，需密钥）
-│   └── searxng.rs      API（JSON，自建）
-├── client.rs       SearchClient + SearchOptions（API/爬取路径）
-├── browser.rs      BrowserClient（经 HTTP 与 tairitsu 通信）
-├── profiles.rs     SearchProfile：每个引擎的 CSS 选择器 + URL 模板
+│   ├── searxng.rs      API（JSON，自建）
+│   ├── bing.rs         API（JSON，需密钥）
+│   ├── brave.rs        API（JSON，需密钥）
+│   ├── zhipu.rs        API（JSON，需密钥 —— 智谱 Web Search）
+│   └── bocha.rs        API（JSON，需密钥 —— 博查 Web Search）
+├── client.rs       SearchClient + SearchOptions
 ├── extractor.rs    完整页面正文抓取器（用于 --fetch）
 └── result.rs       SearchResult / SearchItem / SearchMode
 ```
 
-## 三条执行路径，一种结果类型
+## 两条执行路径，一种结果类型
 
-三条路径都汇聚到
+所有路径都汇聚到
 [`SearchResult`](https://github.com/celestia-island/seia/blob/dev/src/result.rs)：
 
 ```
-                       ┌─ engines_impl/*（API / 爬取）─┐
-query + Engine ─► SearchClient ─► 统一 ─► SearchResult
-                       └─ browser.rs（tairitsu HTTP）──┘
+query + Engine ─► SearchClient ─► engines_impl/* ─► 统一 ─► SearchResult
 ```
 
 - **API** —— `engines_impl::<engine>::search(&http, query, &opts)` 调用服务商，把 JSON
   反序列化成 `SearchItem`。
 - **爬取** —— 签名相同，但解析的是 HTML 结果页。
-- **浏览器** —— `BrowserClient::search` 驱动 tairitsu；每个引擎的 `SearchProfile`
-  提供 URL 与注入的提取 JS 所用的 CSS 选择器。
 
-`SearchMode`（`Api` / `Scrape` / `Browser`）记录结果由哪条路径产生，调用方据此可区分，
-例如缓存 API 答案与渲染页面。
+`SearchMode`（`Api` / `Scrape`）记录结果由哪条路径产生，调用方据此可区分结构化 API
+答案与抓取页面。
 
 ## 分派
 
@@ -49,14 +47,14 @@ query + Engine ─► SearchClient ─► 统一 ─► SearchResult
 `engines_impl/` 实现一个函数，新增一个 `Engine` 变体，新增一个 `match` 分支。没有
 trait object 或动态分派 —— 引擎集合是封闭、编译期已知的，这让 API 可预测、二进制更小。
 
+## 无头浏览器
+
+seia 刻意**不**内置任何浏览器自动化。每个后端都是纯粹的 HTTP 客户端。会激进屏蔽非浏览
+器流量的引擎（Google、百度、Yandex 网页搜索）不在范围内 —— 请经由它们的官方 API，
+或在专用的浏览器工具（如 [shirabe](https://github.com/celestia-island/shirabe)）以独立
+MCP 形式可用时，通过它来访问。
+
 ## 正文补全
 
 `SearchOptions::fetch_content` 是一个正交关注点：引擎返回 `SearchItem` 之后，
-`extractor::fetch_content` 下载并清洗每个页面。它与引擎无关，对任意模式都生效。
-
-## 浏览器集成边界
-
-`tairitsu-packager` 是**可选**依赖，由 `embedded-browser` feature 门控。不开启时 seia
-不含任何浏览器代码，而是通过普通 HTTP 连接外部 tairitsu 守护进程（`BrowserClient`）。
-开启时 `seia::embedded::start` 在进程内启动 debug 服务。这样既保证默认构建轻量，又让
-可发布的 crate 不背负沉重的浏览器依赖。
+`extractor::fetch_content` 下载并清洗每个页面。它与引擎无关。

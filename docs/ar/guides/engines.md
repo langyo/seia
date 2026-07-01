@@ -1,45 +1,54 @@
 # المحركات
 
-يعرّض seia كل خلفية عبر الـ enum الوحيد
-[`Engine`](https://github.com/celestia-island/seia/blob/dev/src/engines.rs)، لذا فإن
-تبديل الخلفية لا يمسّ كود الاستعلام أبدًا.
+يدعم seia 8 خلفيات، تُجلَب جميعها عبر واجهة HTTP API الرسمية الخاصة بها (أو، حيث لا
+توجد API، عبر كشط HTML خفيف). لا يوجد متصفح بلا واجهة — seia هو عميل HTTP نقي، لذا
+يعمل كل محرك من كلٍّ من الـ CLI والمكتبة عبر نفس الـ enum `Engine`.
 
-## ثلاثة أوضاع تنفيذ
+تعرض معظم المحركات باقة مجانية؛ والتي تحتاج مفتاحًا تقرؤه من متغيّر بيئة موثَّق، فلا
+يظهر أي مفتاح أبدًا في الكود أو وسائط الـ CLI.
+
+## أوضاع التنفيذ
 
 | الوضع | طريقة العمل | المحركات |
 | --- | --- | --- |
-| **API** | يستدعي HTTP API لمزوّد البحث ويحلّل JSON. | Tavily وSearXNG وWikipedia |
-| **كشط** | يجلب صفحة نتائج HTML ويستخرج النتائج. | DuckDuckGo |
-| **متصفح** | يقود متصفحًا بلا واجهة (عبر [tairitsu](https://github.com/celestia-island/tairitsu)) لعرض الصفحات الغنية بـ JS. | Google وBaidu وBing (ويب) وYandex |
-
-وضعا API والكشط لا يحتاجان سوى عميل HTTP. أمّا وضع المتصفح فيُشرح في
-[وضع المتصفح](./browser-mode.md).
+| **API** | يستدعي HTTP API لمزوّد البحث ويحلّل JSON. | Tavily وSearXNG وWikipedia وBing وBrave و智谱 و博查 |
+| **كشط** | يجلب صفحة نتائج HTML خفيفة ويستخرج النتائج. | DuckDuckGo |
 
 ## مصفوفة المحركات
 
-| المحرك | قيمة الـ Enum | الوضع | المصادقة | الباقة المجانية |
+### دولي
+
+| المحرك | قيمة الـ Enum | الوضع | المصادقة | الباقة المجانية | الحالة |
+| --- | --- | --- | --- | --- | --- |
+| DuckDuckGo | `Duckduckgo` | كشط | بدون | غير محدود | ✅ |
+| Wikipedia | `Wikipedia` | API | بدون | غير محدود | ✅ |
+| SearXNG | `Searxng` | API | `SEARXNG_URL` | استضافة ذاتية | ✅ |
+| Tavily | `Tavily` | API | `TAVILY_API_KEY` | 1 000 / شهر | ✅ |
+| Bing | `Bing` | API | `BING_SEARCH_API_KEY` | 1 000 / شهر | ✅ |
+| Brave | `Brave` | API | `BRAVE_SEARCH_API_KEY` | 2 000 / شهر | ✅ |
+
+### محلي (الصين)
+
+| المحرك | قيمة الـ Enum | الوضع | المصادقة | الحالة |
 | --- | --- | --- | --- | --- |
-| DuckDuckGo | `Duckduckgo` | كشط | بدون | غير محدود |
-| Wikipedia | `Wikipedia` | API | بدون | غير محدود |
-| SearXNG | `Searxng` | API | `SEARXNG_URL` | مستضاف ذاتيًا |
-| Tavily | `Tavily` | API | `TAVILY_API_KEY` | 1 000 / شهر |
-| Bing | `Bing` | API | `BING_SEARCH_API_KEY` | 1 000 / شهر |
-| Brave | `Brave` | API | `BRAVE_SEARCH_API_KEY` | 2 000 / شهر |
-| Google | browser profile | متصفح | tairitsu | — |
-| Baidu | browser profile | متصفح | tairitsu | — |
-| Bing (ويب) | browser profile | متصفح | tairitsu | — |
-| Yandex | browser profile | متصفح | tairitsu | — |
+| 智谱 (Zhipu / BigModel) | `Zhipu` | API | `ZHIPU_API_KEY` | ✅ |
+| 博查 (Bocha) | `Bocha` | API | `BOCHA_API_KEY` | ✅ |
 
-> خلفيتا API لِكلٍّ من Bing وBrave هما مجرّد هياكل مؤقّة (`Engine::Bing` / `Engine::Brave`
-> تُرجع خطأ "not yet implemented"). استخدم browser profile أو
-> [ساهم](https://github.com/celestia-island/seia) بتنفيذ.
+> تستطيع Web Search API الخاصة بـ 智谱 توجيه الطلب عبر إحدى عدّة محركات خلفية —
+> 智谱基础版 (`search_std`، الافتراضية)، 智谱高阶版 (`search_pro`)، 搜狗
+> (`search_pro_sogou`)، أو 夸克 (`search_pro_quark`). اختر إحداها بمتغيّر البيئة
+> `ZHIPU_SEARCH_ENGINE`.
 
-## اختيار محرك
+> يُعيد 博查 لكل صفحة كلًّا من `snippet` قصير و`summary` أطول تولّده نماذج لغوية؛
+> يُظهر seia أيَّهما أطول باعتباره `snippet` الخاص بالنتيجة.
+
+## اختيار المحرك
 
 CLI:
 
 ```bash
 seia search "query" --engine wikipedia
+seia search "查询" --engine zhipu      # يحتاج ZHIPU_API_KEY
 ```
 
 المكتبة:
@@ -49,17 +58,18 @@ use seia::{SearchClient, Engine};
 
 let client = SearchClient::new();
 client.search("query", Engine::Wikipedia).await?;
+client.search("查询", Engine::Zhipu).await?;   // يحتاج ZHIPU_API_KEY
 ```
 
 ## فحص البيانات الوصفية للمحرك
 
-يحمل `Engine` بياناته الوصفية الخاصة، لذا يمكنك بناء واجهات دون ترميز ثابت (hard-coding):
+يحمل `Engine` بياناته الوصفية الخاصة:
 
 ```rust
 use seia::Engine;
 
-for engine in [Engine::Duckduckgo, Engine::Tavily, Engine::Bing] {
-    println!("{:?}", engine);                 // duckduckgo / tavily / bing
+for engine in [Engine::Duckduckgo, Engine::Tavily, Engine::Bing, Engine::Zhipu] {
+    println!("{:?}", engine);                 // duckduckgo / tavily / bing / zhipu
     println!("  يتطلّب مفتاحًا؟ {}", engine.needs_key());
     println!("  متغيّر المفتاح:    {:?}", engine.api_key_env());
 }

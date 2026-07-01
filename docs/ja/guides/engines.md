@@ -1,37 +1,46 @@
 # エンジン
 
-seia はすべてのバックエンドを単一の [`Engine`](https://github.com/celestia-island/seia/blob/dev/src/engines.rs)
-列挙型で公開しているため、バックエンドを切り替えてもクエリコードは一切変更されません。
+seia は 8 つのバックエンドをサポートしています。すべて公式の HTTP API（API が存在しない場合は
+軽量な HTML スクレイプ）経由でアクセスします。ヘッドレスブラウザは一切存在せず、seia は
+純粋な HTTP クライアントであるため、どのエンジンも CLI とライブラリの双方で同じ `Engine`
+列挙型を通じて動作します。
 
-## 3 つの実行モード
+ほとんどのエンジンは無料枠を提供しており、キーが必要なものはドキュメントに記載された環境変数から
+読み取るため、コードや CLI 引数にキーが現れることはありません。
+
+## 2 つの実行モード
 
 | モード | 仕組み | エンジン |
 | --- | --- | --- |
-| **API** | 検索プロバイダの HTTP API を呼び出して JSON を解析します。 | Tavily、SearXNG、Wikipedia |
+| **API** | 検索プロバイダの HTTP API を呼び出して JSON を解析します。 | Tavily、SearXNG、Wikipedia、Bing、Brave、智谱、博查 |
 | **スクレイプ** | HTML の検索結果ページを取得し、ヒットを抽出します。 | DuckDuckGo |
-| **ブラウザ** | ヘッドレスブラウザ（[tairitsu](https://github.com/celestia-island/tairitsu) 経由）を駆動して JS 多めのページをレンダリングします。 | Google、Baidu、Bing（Web）、Yandex |
 
-API とスクレイプのモードは HTTP クライアントだけで動作します。ブラウザモードについては
-[ブラウザモード](./browser-mode.md) を参照してください。
+## エンジンマトリクス
 
-## エンジン一覧
+### 国際
 
-| エンジン | 列挙値 | モード | 認証 | 無料枠 |
+| エンジン | 列挙値 | モード | 認証 | 無料枠 | 状態 |
+| --- | --- | --- | --- | --- | --- |
+| DuckDuckGo | `Duckduckgo` | スクレイプ | なし | 無制限 | ✅ |
+| Wikipedia | `Wikipedia` | API | なし | 無制限 | ✅ |
+| SearXNG | `Searxng` | API | `SEARXNG_URL` | 自己ホスト | ✅ |
+| Tavily | `Tavily` | API | `TAVILY_API_KEY` | 1 000 / 月 | ✅ |
+| Bing | `Bing` | API | `BING_SEARCH_API_KEY` | 1 000 / 月 | ✅ |
+| Brave | `Brave` | API | `BRAVE_SEARCH_API_KEY` | 2 000 / 月 | ✅ |
+
+### 国内（中国）
+
+| エンジン | 列挙値 | モード | 認証 | 状態 |
 | --- | --- | --- | --- | --- |
-| DuckDuckGo | `Duckduckgo` | スクレイプ | なし | 無制限 |
-| Wikipedia | `Wikipedia` | API | なし | 無制限 |
-| SearXNG | `Searxng` | API | `SEARXNG_URL` | 自己ホスト |
-| Tavily | `Tavily` | API | `TAVILY_API_KEY` | 1 000 / 月 |
-| Bing | `Bing` | API | `BING_SEARCH_API_KEY` | 1 000 / 月 |
-| Brave | `Brave` | API | `BRAVE_SEARCH_API_KEY` | 2 000 / 月 |
-| Google | ブラウザプロファイル | ブラウザ | tairitsu | — |
-| Baidu | ブラウザプロファイル | ブラウザ | tairitsu | — |
-| Bing（Web） | ブラウザプロファイル | ブラウザ | tairitsu | — |
-| Yandex | ブラウザプロファイル | ブラウザ | tairitsu | — |
+| 智谱 (Zhipu / BigModel) | `Zhipu` | API | `ZHIPU_API_KEY` | ✅ |
+| 博查 (Bocha) | `Bocha` | API | `BOCHA_API_KEY` | ✅ |
 
-> Bing と Brave の API バックエンドはスタブ実装です（`Engine::Bing` / `Engine::Brave`
-> は "not yet implemented" エラーを返します）。ブラウザプロファイルを使うか、実装を
-> [コントリビート](https://github.com/celestia-island/seia)してください。
+> 智谱の Web Search API は複数のバッキングエンジンを経由できます —— 智谱基础版
+> （`search_std`、デフォルト）、智谱高阶版（`search_pro`）、搜狗（`search_pro_sogou`）、
+> 夸克（`search_pro_quark`）。`ZHIPU_SEARCH_ENGINE` 環境変数で選択してください。
+
+> 博查はページごとに短い `snippet` と、より長い LLM 生成の `summary` を返します。seia は
+> 長い方を結果の `snippet` として採用します。
 
 ## エンジンの選択
 
@@ -39,6 +48,7 @@ CLI:
 
 ```bash
 seia search "query" --engine wikipedia
+seia search "查询" --engine zhipu      # ZHIPU_API_KEY が必要
 ```
 
 ライブラリ:
@@ -48,17 +58,18 @@ use seia::{SearchClient, Engine};
 
 let client = SearchClient::new();
 client.search("query", Engine::Wikipedia).await?;
+client.search("查询", Engine::Zhipu).await?;   // ZHIPU_API_KEY が必要
 ```
 
 ## エンジンのメタデータを確認する
 
-`Engine` は自身のメタデータを保持しているため、ハードコードせずに UI を構築できます。
+`Engine` は自身のメタデータを保持しています。
 
 ```rust
 use seia::Engine;
 
-for engine in [Engine::Duckduckgo, Engine::Tavily, Engine::Bing] {
-    println!("{:?}", engine);                 // duckduckgo / tavily / bing
+for engine in [Engine::Duckduckgo, Engine::Tavily, Engine::Bing, Engine::Zhipu] {
+    println!("{:?}", engine);                 // duckduckgo / tavily / bing / zhipu
     println!("  needs key? {}", engine.needs_key());
     println!("  key env:    {:?}", engine.api_key_env());
 }

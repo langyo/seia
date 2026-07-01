@@ -41,9 +41,6 @@ seia search "climate change" --json
 
 # 프록시를 통한 검색
 HTTPS_PROXY=http://localhost:7890 seia search "hello world"
-
-# 브라우저 모드 (헤드리스, API 키 불필요)
-seia search "query" --browser --browser-engine google
 ```
 
 ### 라이브러리
@@ -64,7 +61,10 @@ just test        # cargo test
 
 ## 지원 검색 엔진
 
-### API / 스크랩 엔진
+모든 엔진은 공식 HTTP API(API가 없는 경우 가벼운 HTML 스크랩)를 통해 동작합니다.
+헤드리스 브라우저는 포함되어 있지 않습니다 — seia는 순수 HTTP 클라이언트입니다.
+
+### 국제
 
 | 엔진 | 공식 사이트 | 모드 | 인증 | 무료 한도 | 상태 |
 |------|---------|------|------|---------|------|
@@ -72,29 +72,19 @@ just test        # cargo test
 | Wikipedia | [wikipedia.org](https://www.wikipedia.org) | API | 없음 | 무제한 | ✅ |
 | SearXNG | [searxng.org](https://searxng.org) | API | `SEARXNG_URL` | 자체 호스팅 | ✅ |
 | Tavily | [tavily.com](https://tavily.com) | API | `TAVILY_API_KEY` | 1 000/월 | ✅ |
-| Bing | [bing.com](https://www.bing.com) | API | `BING_SEARCH_API_KEY` | 1 000/월 | 🔜 |
-| Brave | [brave.com/search](https://brave.com/search) | API | `BRAVE_SEARCH_API_KEY` | 2 000/월 | 🔜 |
+| Bing | [bing.com](https://www.bing.com) | API | `BING_SEARCH_API_KEY` | 1 000/월 | ✅ |
+| Brave | [brave.com/search](https://brave.com/search) | API | `BRAVE_SEARCH_API_KEY` | 2 000/월 | ✅ |
 
-> Bing과 Brave API 백엔드는 스텁(미구현) 상태입니다. 브라우저 프로필로 임시 대체하거나
-> [기여](https://github.com/celestia-island/seia)해 주세요.
+### 국내 (중국)
 
-### 브라우저 엔진 (CLI 전용)
+| 엔진 | 공식 사이트 | 모드 | 인증 | 상태 |
+|------|---------|------|------|------|
+| 智谱 (Zhipu) | [bigmodel.cn](https://bigmodel.cn) | API | `ZHIPU_API_KEY` | ✅ |
+| 博查 (Bocha) | [open.bochaai.com](https://open.bochaai.com) | API | `BOCHA_API_KEY` | ✅ |
 
-| 엔진 | 공식 사이트 | 인증 | 설명 |
-|------|---------|------|------|
-| Google | [google.com](https://www.google.com) | 없음 (tairitsu로 스크랩) | Google 웹 검색 |
-| Baidu | [baidu.com](https://www.baidu.com) | 없음 (tairitsu로 스크랩) | Baidu 웹 검색 |
-| Bing Web | [bing.com](https://www.bing.com) | 없음 (tairitsu로 스크랩) | Bing 웹 결과 |
-| Yandex | [yandex.com](https://yandex.com) | 없음 (tairitsu로 스크랩) | Yandex 웹 검색 |
-
-브라우저 모드 엔진은 헤드리스 렌더링을 위해
-[tairitsu](https://github.com/celestia-island/tairitsu)를 사용합니다. 독립 데몬을
-실행하거나 `embedded-browser` 기능을 활성화하여 tairitsu를 프로세스 내에 컴파일할 수
-있습니다.
-
-> 대부분의 검색 엔진은 공식 REST API를 제공합니다. 브라우저 프로필은 API 백엔드가 아직
-> 구현되지 않았거나 API를 무료로 사용할 수 없는 경우의 대체 수단입니다. 장기적으로는 각
-> 브라우저 프로필에 대응하는 `Engine` 배리언트를 추가하고 API 키 지원을 제공할 예정입니다.
+> 智谱는 여러 백킹 엔진(智谱基础版/高阶版, 搜狗, 夸克) 중 하나를 경유하여 라우팅합니다.
+> `ZHIPU_SEARCH_ENGINE` 환경변수로 선택하세요 (기본값 `search_std`; 그 외 `search_pro`,
+> `search_pro_sogou`, `search_pro_quark`).
 
 ## 라이선스
 

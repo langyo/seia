@@ -43,11 +43,11 @@ seia search "open source licenses" --engine searxng
 
 ## 프록시를 통한 검색
 
+`SearchClient`는 reqwest를 통해 표준 `HTTPS_PROXY` / `HTTP_PROXY` 환경변수를
+준수합니다 — 별도의 플래그가 필요 없습니다:
+
 ```bash
 HTTPS_PROXY=http://localhost:7890 seia search "hello world"
-
-# 또는 명시적으로
-seia search "hello world" --proxy http://localhost:7890
 ```
 
 ## 라이브러리로 사용

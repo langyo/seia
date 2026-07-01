@@ -9,7 +9,6 @@
 - [快速开始](./guides/quickstart.md)
 - [引擎](./guides/engines.md)
 - [库的用法](./guides/library.md)
-- [浏览器模式](./guides/browser-mode.md)
 
 ---
 
