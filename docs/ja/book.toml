@@ -1,0 +1,17 @@
+[book]
+title = "seia ドキュメント"
+description = "汎用検索エンジン抽象化レイヤー —— API モードとヘッドレスブラウザモードを備えたマルチバックエンド Web 検索"
+authors = ["celestia-island"]
+language = "ja"
+src = "."
+
+[build]
+build-dir = "../../target/docs/ja"
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "ayu"
+git-repository-url = "https://github.com/celestia-island/seia"
+edit-url-template = "https://github.com/celestia-island/seia/edit/dev/docs/ja/{path}"
+additional-js = ["../theme/lang-switcher.js"]
+additional-css = ["../theme/lang-switcher.css"]

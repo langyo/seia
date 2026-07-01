@@ -1,0 +1,17 @@
+[book]
+title = "seia 문서"
+description = "범용 검색 엔진 추상화 —— API 모드와 헤드리스 브라우저 모드를 갖춘 다중 백엔드 웹 검색"
+authors = ["celestia-island"]
+language = "ko"
+src = "."
+
+[build]
+build-dir = "../../target/docs/ko"
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "ayu"
+git-repository-url = "https://github.com/celestia-island/seia"
+edit-url-template = "https://github.com/celestia-island/seia/edit/dev/docs/ko/{path}"
+additional-js = ["../theme/lang-switcher.js"]
+additional-css = ["../theme/lang-switcher.css"]

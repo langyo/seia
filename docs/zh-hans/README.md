@@ -1,17 +1,8 @@
 # seia — 通用搜索引擎抽象层
 
-<div align="center">
-
 **一次查询，所有搜索引擎。**
 
 Rust 多后端 Web 搜索库与 CLI。免费引擎开箱即用。
-
-[![License: SySL-1.0](https://img.shields.io/badge/License-SySL--1.0-blue.svg)](../../LICENSE)
-[![CI](https://github.com/celestia-island/seia/actions/workflows/checks.yml/badge.svg)](https://github.com/celestia-island/seia/actions)
-
-**[English](../en/README.md)** · **[简体中文](README.md)**
-
-</div>
 
 ## 简介
 
