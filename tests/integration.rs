@@ -87,6 +87,8 @@ mod tests {
         assert_eq!(Engine::Searxng.as_str(), "searxng");
         assert_eq!(Engine::Bing.as_str(), "bing");
         assert_eq!(Engine::Brave.as_str(), "brave");
+        assert_eq!(Engine::Zhipu.as_str(), "zhipu");
+        assert_eq!(Engine::Bocha.as_str(), "bocha");
     }
 
     #[test]
@@ -96,6 +98,8 @@ mod tests {
         assert_eq!(Engine::Tavily.api_key_env(), Some("TAVILY_API_KEY"));
         assert_eq!(Engine::Bing.api_key_env(), Some("BING_SEARCH_API_KEY"));
         assert_eq!(Engine::Brave.api_key_env(), Some("BRAVE_SEARCH_API_KEY"));
+        assert_eq!(Engine::Zhipu.api_key_env(), Some("ZHIPU_API_KEY"));
+        assert_eq!(Engine::Bocha.api_key_env(), Some("BOCHA_API_KEY"));
     }
 
     #[test]
@@ -104,6 +108,9 @@ mod tests {
         assert!(!Engine::Wikipedia.needs_key());
         assert!(Engine::Tavily.needs_key());
         assert!(Engine::Bing.needs_key());
+        assert!(Engine::Brave.needs_key());
+        assert!(Engine::Zhipu.needs_key());
+        assert!(Engine::Bocha.needs_key());
     }
 
     /// SearchOptions defaults.
@@ -166,5 +173,35 @@ mod tests {
         let client = SearchClient::new();
         let result = client.search("test", Engine::Searxng).await;
         assert!(result.is_err(), "should fail without SEARXNG_URL");
+    }
+
+    /// Keyed engines: each refuses to run without its API key set. We don't
+    /// assert the exact env-var name per engine here (that's covered by the
+    /// unit tests) — only that a missing key surfaces as an error rather than
+    /// a panic or an empty result.
+    #[tokio::test]
+    async fn test_keyed_engines_fail_without_key() {
+        // Make sure none of these are set in the test environment.
+        let keys = [
+            "BING_SEARCH_API_KEY",
+            "BRAVE_SEARCH_API_KEY",
+            "ZHIPU_API_KEY",
+            "BOCHA_API_KEY",
+        ];
+        let client = SearchClient::new();
+        for &engine in &[Engine::Bing, Engine::Brave, Engine::Zhipu, Engine::Bocha] {
+            // If the developer happens to have a key set locally, skip — we
+            // can only assert the missing-key path when the key is actually
+            // absent.
+            let has_key = engine
+                .api_key_env()
+                .map(|k| keys.contains(&k) && std::env::var(k).is_ok())
+                .unwrap_or(false);
+            if has_key {
+                continue;
+            }
+            let result = client.search("test", engine).await;
+            assert!(result.is_err(), "{engine} should fail without its API key");
+        }
     }
 }

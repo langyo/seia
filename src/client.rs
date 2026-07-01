@@ -66,12 +66,10 @@ impl SearchClient {
             Engine::Wikipedia => {
                 crate::engines_impl::wikipedia::search(&self.http, query, &opts).await?
             }
-            Engine::Bing => Err(anyhow!(
-                "Bing engine not yet implemented. Set BING_SEARCH_API_KEY."
-            ))?,
-            Engine::Brave => Err(anyhow!(
-                "Brave engine not yet implemented. Set BRAVE_SEARCH_API_KEY."
-            ))?,
+            Engine::Bing => crate::engines_impl::bing::search(&self.http, query, &opts).await?,
+            Engine::Brave => crate::engines_impl::brave::search(&self.http, query, &opts).await?,
+            Engine::Zhipu => crate::engines_impl::zhipu::search(&self.http, query, &opts).await?,
+            Engine::Bocha => crate::engines_impl::bocha::search(&self.http, query, &opts).await?,
         };
 
         let mut items = items;

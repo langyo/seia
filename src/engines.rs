@@ -18,6 +18,10 @@ pub enum Engine {
     Bing,
     /// Brave Search API (free tier available).
     Brave,
+    /// 智谱 (Zhipu / BigModel) web_search tool — domestic Chinese AI search.
+    Zhipu,
+    /// 博查 (Bocha) Web Search API — domestic Chinese web search.
+    Bocha,
 }
 
 impl Engine {
@@ -29,6 +33,8 @@ impl Engine {
             Self::Wikipedia => "wikipedia",
             Self::Bing => "bing",
             Self::Brave => "brave",
+            Self::Zhipu => "zhipu",
+            Self::Bocha => "bocha",
         }
     }
 
@@ -38,6 +44,8 @@ impl Engine {
             Self::Tavily => Some("TAVILY_API_KEY"),
             Self::Bing => Some("BING_SEARCH_API_KEY"),
             Self::Brave => Some("BRAVE_SEARCH_API_KEY"),
+            Self::Zhipu => Some("ZHIPU_API_KEY"),
+            Self::Bocha => Some("BOCHA_API_KEY"),
             _ => None,
         }
     }

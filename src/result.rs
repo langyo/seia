@@ -31,6 +31,4 @@ pub enum SearchMode {
     Api,
     /// Scraped an HTML search results page (no official API).
     Scrape,
-    /// Drove a headless browser to render and extract results.
-    Browser,
 }

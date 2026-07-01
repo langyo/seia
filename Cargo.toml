@@ -5,7 +5,7 @@ edition = "2024"
 rust-version = "1.85"
 authors = ["langyo <langyo.china@gmail.com>"]
 license-file = "LICENSE"
-description = "Universal search engine abstraction — multi-backend web search with API and headless browser modes"
+description = "Universal search engine abstraction — multi-backend web search through official APIs and lightweight HTML scraping"
 repository = "https://github.com/celestia-island/seia"
 keywords = ["search", "web", "duckduckgo", "tavily", "searxng"]
 categories = ["api-bindings", "web-programming", "command-line-interface"]
@@ -33,10 +33,6 @@ url = "^2"
 regex = "^1"
 scraper = "^0.22"
 tokio-stream = "^0.1"
-shirabe = { version = "0.1.0", path = "../shirabe" }
-
-[features]
-default = []
 
 [dev-dependencies]
 tokio-test = "^0.4"
