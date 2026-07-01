@@ -27,7 +27,7 @@
 <a href="./docs/es/README.md">Español</a> ·
 <a href="./docs/ru/README.md">Русский</a> ·
 <a href="./docs/ar/README.md">العربية</a>
-</p>
+</div>
 
 ## Introduction
 
