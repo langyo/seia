@@ -144,14 +144,36 @@ async fn main() -> anyhow::Result<()> {
             }
 
             // API / scrape mode
-            let client = SearchClient::new();
+            let client = match &proxy {
+                Some(p) => SearchClient::with_proxy(p).unwrap_or_else(|e| {
+                    eprintln!("Warning: invalid --proxy '{p}': {e}; falling back to direct");
+                    SearchClient::new()
+                }),
+                None => SearchClient::new(),
+            };
             let opts = seia::client::SearchOptions {
                 limit: Some(limit),
                 fetch_content: fetch,
                 searxng_url: None,
             };
 
-            let result = client.search_with_options(&query, engine, opts).await?;
+            // Try the requested engine; if it fails, automatically fall back to
+            // Wikipedia (free, no key, reliable) so the user still gets results.
+            let result = match client
+                .search_with_options(&query, engine, opts.clone())
+                .await
+            {
+                Ok(r) => r,
+                Err(e) => {
+                    eprintln!(
+                        "Warning: {} failed ({e}); trying Wikipedia fallback...",
+                        engine
+                    );
+                    client
+                        .search_with_options(&query, Engine::Wikipedia, opts)
+                        .await?
+                }
+            };
 
             if json {
                 println!("{}", serde_json::to_string_pretty(&result)?);
