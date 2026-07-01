@@ -31,10 +31,10 @@ seia هي مكتبة وأداة سطر أوامر للبحث متعدد المح
 ### CLI
 
 ```bash
-# بحث أساسي (DuckDuckGo، مجاني، بلا مفتاح)
+# بحث أساسي (محرك مجاني، بلا مفتاح)
 seia search "rust async patterns"
 
-# Wikipedia (مجاني، أكاديمي)
+# اختيار محرك معين
 seia search "Klein bottle" --engine wikipedia
 
 # مخرجات JSON
@@ -43,7 +43,7 @@ seia search "climate change" --json
 # عبر وكيل (proxy)
 HTTPS_PROXY=http://localhost:7890 seia search "hello world"
 
-# وضع المتصفح (Google/Baidu عبر tairitsu)
+# وضع المتصفح (بدون واجهة، بلا مفتاح API)
 seia search "query" --browser --browser-engine google
 ```
 

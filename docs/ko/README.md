@@ -32,10 +32,10 @@ seia는 Rust로 작성된 다중 엔진 웹 검색 라이브러리이자 CLI 도
 ### CLI
 
 ```bash
-# 기본 검색 (DuckDuckGo, 무료, 키 불필요)
+# 기본 검색 (무료 엔진, 키 불필요)
 seia search "rust async patterns"
 
-# Wikipedia (무료, 학술)
+# 특정 엔진 선택
 seia search "Klein bottle" --engine wikipedia
 
 # JSON 출력
@@ -44,7 +44,7 @@ seia search "climate change" --json
 # 프록시를 통한 검색
 HTTPS_PROXY=http://localhost:7890 seia search "hello world"
 
-# 브라우저 모드 (Google/Baidu, tairitsu 경유)
+# 브라우저 모드 (헤드리스, API 키 불필요)
 seia search "query" --browser --browser-engine google
 ```
 

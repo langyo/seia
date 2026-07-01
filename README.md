@@ -40,10 +40,10 @@ require authentication work out of the box with zero configuration.
 ### CLI
 
 ```bash
-# Basic search (DuckDuckGo, free, no key)
+# Basic search (free engine, no key required)
 seia search "rust async patterns"
 
-# Wikipedia (free, academic)
+# Choose a specific engine
 seia search "Klein bottle" --engine wikipedia
 
 # JSON output
@@ -52,7 +52,7 @@ seia search "climate change" --json
 # Through a proxy
 HTTPS_PROXY=http://localhost:7890 seia search "hello world"
 
-# Browser mode (Google/Baidu via tairitsu)
+# Browser mode (headless, no API key required)
 seia search "query" --browser --browser-engine google
 ```
 

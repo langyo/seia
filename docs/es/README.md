@@ -32,10 +32,10 @@ requieren autenticación funcionan de inmediato sin configuración.
 ### CLI
 
 ```bash
-# Búsqueda básica (DuckDuckGo, gratuito, sin clave)
+# Búsqueda básica (motor gratuito, sin clave)
 seia search "rust async patterns"
 
-# Wikipedia (gratuito, académico)
+# Elegir un motor específico
 seia search "Klein bottle" --engine wikipedia
 
 # Salida JSON
@@ -44,7 +44,7 @@ seia search "climate change" --json
 # A través de un proxy
 HTTPS_PROXY=http://localhost:7890 seia search "hello world"
 
-# Modo navegador (Google/Baidu vía tairitsu)
+# Modo navegador (headless, sin clave API)
 seia search "query" --browser --browser-engine google
 ```
 
