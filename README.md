@@ -6,7 +6,7 @@
 
 Multi-backend web search library and CLI — API mode, scrape mode, or headless browser mode.
 
-[![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL--1.1-blue.svg)](./LICENSE)
+[![License: SySL-1.0](https://img.shields.io/badge/License-SySL--1.0-blue.svg)](./LICENSE)
 [![CI](https://github.com/celestia-island/seia/actions/workflows/checks.yml/badge.svg)](https://github.com/celestia-island/seia/actions)
 
 [English](./README.md) · [简体中文](./docs/zh-hans/README.md)
@@ -153,4 +153,4 @@ just clippy      # cargo clippy -D warnings
 
 ## License
 
-BUSL-1.1. Changes to Apache-2.0 or MIT on 2030-01-01.
+SySL-1.0 (Synthetic Source License).

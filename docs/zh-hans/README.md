@@ -6,7 +6,7 @@
 
 多后端 Web 搜索库和 CLI — 支持 API 模式、爬取模式、无头浏览器模式。
 
-[![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL--1.1-blue.svg)](../../LICENSE)
+[![License: SySL-1.0](https://img.shields.io/badge/License-SySL--1.0-blue.svg)](../../LICENSE)
 [![CI](https://github.com/celestia-island/seia/actions/workflows/checks.yml/badge.svg)](https://github.com/celestia-island/seia/actions)
 
 </div>
@@ -51,4 +51,4 @@ seia search "hello world"
 
 ## 许可证
 
-BUSL-1.1，2030-01-01 起自动转为 Apache-2.0 或 MIT。
+SySL-1.0（合成源码许可证）。
