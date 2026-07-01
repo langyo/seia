@@ -13,9 +13,8 @@ mod tests {
     fn test_client() -> SearchClient {
         if let Ok(p) = std::env::var("SEIA_TEST_PROXY") {
             if !p.is_empty() {
-                return SearchClient::with_proxy(&p).unwrap_or_else(|e| {
-                    panic!("invalid SEIA_TEST_PROXY={p:?}: {e}")
-                });
+                return SearchClient::with_proxy(&p)
+                    .unwrap_or_else(|e| panic!("invalid SEIA_TEST_PROXY={p:?}: {e}"));
             }
         }
         SearchClient::new()

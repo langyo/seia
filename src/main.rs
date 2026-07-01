@@ -104,11 +104,12 @@ async fn main() -> anyhow::Result<()> {
 
                 // Select profile: --browser-engine overrides --engine
                 let engine_name = browser_engine.as_deref().unwrap_or("google");
-                let profile = seia::profiles::get_profile(engine_name)
-                    .ok_or_else(|| anyhow::anyhow!(
+                let profile = seia::profiles::get_profile(engine_name).ok_or_else(|| {
+                    anyhow::anyhow!(
                         "unknown browser engine '{}'. Options: google, baidu, bing_web, yandex",
                         engine_name
-                    ))?;
+                    )
+                })?;
 
                 let client = seia::BrowserClient::new(&endpoint);
 
