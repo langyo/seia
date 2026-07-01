@@ -3,6 +3,22 @@
 mod tests {
     use seia::{Engine, SearchClient, SearchOptions};
 
+    /// Build a client for the live-network tests.
+    ///
+    /// Route traffic through a local proxy (e.g. a clash/v2ray on 7890) by
+    /// setting `SEIA_TEST_PROXY=http://localhost:7890`. With it unset the
+    /// client connects directly — which is what CI does (GitHub runners have
+    /// direct internet). `SearchClient::new` also still honors the standard
+    /// `HTTPS_PROXY` env var via reqwest.
+    fn test_client() -> SearchClient {
+        if let Ok(p) = std::env::var("SEIA_TEST_PROXY") {
+            if !p.is_empty() {
+                return SearchClient::with_proxy(&p);
+            }
+        }
+        SearchClient::new()
+    }
+
     /// Smoke test: DuckDuckGo returns results for a simple query.
     #[tokio::test]
     #[ignore = "DuckDuckGo may rate-limit; run manually with --ignored"]
@@ -26,7 +42,7 @@ mod tests {
     /// Smoke test: Wikipedia API returns results.
     #[tokio::test]
     async fn test_wikipedia_smoke() {
-        let client = SearchClient::new();
+        let client = test_client();
         let result = client
             .search("Klein bottle", Engine::Wikipedia)
             .await
@@ -43,7 +59,7 @@ mod tests {
     /// Wikipedia: academic query returns relevant results.
     #[tokio::test]
     async fn test_wikipedia_academic() {
-        let client = SearchClient::new();
+        let client = test_client();
         let result = client
             .search("fundamental group of torus", Engine::Wikipedia)
             .await
@@ -121,7 +137,7 @@ mod tests {
     /// Fallback search: tries multiple engines.
     #[tokio::test]
     async fn test_search_fallback() {
-        let client = SearchClient::new();
+        let client = test_client();
         let result = client
             .search_fallback("mathematics", &[Engine::Duckduckgo, Engine::Wikipedia])
             .await
