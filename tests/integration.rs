@@ -5,6 +5,7 @@ mod tests {
 
     /// Smoke test: DuckDuckGo returns results for a simple query.
     #[tokio::test]
+    #[ignore = "DuckDuckGo may rate-limit; run manually with --ignored"]
     async fn test_duckduckgo_smoke() {
         let client = SearchClient::new();
         let result = client

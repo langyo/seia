@@ -31,14 +31,25 @@ enum Command {
         #[arg(short, long, default_value = "10")]
         limit: usize,
 
-        /// Browser mode: search via tairitsu headless browser.
-        /// Use with engines that need a real browser (google, baidu, bing_web, yandex).
-        #[arg(long)]
-        browser: bool,
+    /// Browser mode: search via tairitsu headless browser.
+    /// Use with engines that need a real browser (google, baidu, bing_web, yandex).
+    /// Requires either an external tairitsu daemon or the `embedded-browser` feature.
+    #[arg(long)]
+    browser: bool,
 
-        /// tairitsu debug server endpoint (default: http://127.0.0.1:3001)
-        #[arg(long, default_value = "http://127.0.0.1:3001")]
-        tairitsu: String,
+    /// tairitsu debug server endpoint (default: http://127.0.0.1:3001)
+    #[arg(long, default_value = "http://127.0.0.1:3001")]
+    tairitsu: String,
+
+    /// Start embedded tairitsu server (requires `embedded-browser` feature).
+    /// If set, ignores --tairitsu and spawns in-process.
+    #[cfg(feature = "embedded-browser")]
+    #[arg(long)]
+    embedded: bool,
+
+    /// Proxy server for the embedded browser (e.g. http://localhost:7890)
+    #[arg(long)]
+    proxy: Option<String>,
     },
 
     /// List available engines
@@ -54,9 +65,26 @@ async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match cli.cmd {
-        Command::Search { query, engine, json, fetch, limit, browser, tairitsu } => {
+        Command::Search { query, engine, json, fetch, limit, browser, tairitsu,
+            #[cfg(feature = "embedded-browser")] embedded,
+            proxy } => {
             if browser {
-                // Browser mode: use tairitsu
+                // Determine endpoint
+                #[cfg(feature = "embedded-browser")]
+                let endpoint = if embedded {
+                    let port = 3001u16;
+                    seia::embedded::start(port, proxy.as_deref())
+                        .map_err(|e| anyhow::anyhow!("embedded server failed: {}", e))?;
+                    // Wait for browser to connect
+                    tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+                    format!("http://127.0.0.1:{}", port)
+                } else {
+                    tairitsu.clone()
+                };
+                #[cfg(not(feature = "embedded-browser"))]
+                let endpoint = tairitsu.clone();
+
+                // Select profile
                 let profile = match engine.as_str() {
                     "duckduckgo" => seia::profiles::get_profile("google")
                         .ok_or_else(|| anyhow::anyhow!("no profile"))?,
@@ -65,11 +93,13 @@ async fn main() -> anyhow::Result<()> {
                         .ok_or_else(|| anyhow::anyhow!("no profile for engine {}", engine))?,
                 };
 
-                let client = seia::BrowserClient::new(&tairitsu);
+                let client = seia::BrowserClient::new(&endpoint);
 
-                // Check health
                 if !client.health().await.unwrap_or(false) {
-                    eprintln!("Warning: tairitsu browser not connected at {}", tairitsu);
+                    eprintln!("Warning: tairitsu browser not connected at {}", endpoint);
+                    eprintln!("Start with: tairitsu debug --proxy http://localhost:7890");
+                    #[cfg(feature = "embedded-browser")]
+                    eprintln!("Or use: seia search '...' --browser --embedded");
                 }
 
                 let result = client.search(&query, profile).await?;

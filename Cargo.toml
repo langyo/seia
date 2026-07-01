@@ -30,8 +30,15 @@ tracing-subscriber = { version = "^0.3", features = ["env-filter"] }
 async-trait = "^0.1"
 url = "^2"
 regex = "^1"
-scraper = "^0.22"           # HTML parsing for scraping backends
+scraper = "^0.22"
 tokio-stream = "^0.1"
+tairitsu-packager = { path = "../tairitsu/packages/packager", default-features = false, features = ["dev-server", "debug-browser"], optional = true }
+
+[features]
+default = []
+# Embed tairitsu debug server for in-process browser mode.
+# Without this feature, seia connects to an external tairitsu daemon via HTTP.
+embedded-browser = ["tairitsu-packager"]
 
 [dev-dependencies]
 tokio-test = "^0.4"
