@@ -4,10 +4,6 @@
 
 <p align="center"><strong>Knowledge from every source</strong></p>
 
-<p align="center">
-  Multi-engine web search library and CLI.
-</p>
-
 <div align="center">
 
 [![License: SySL-1.0](https://img.shields.io/badge/License-SySL--1.0-blue.svg)](./LICENSE)

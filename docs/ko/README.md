@@ -6,8 +6,6 @@
 
 <strong>모든 출처의 지식을 탐색하다</strong>
 
-다중 엔진 웹 검색 라이브러리이자 CLI 도구입니다.
-
 [![License: SySL-1.0](https://img.shields.io/badge/License-SySL--1.0-blue.svg)](../../LICENSE)
 [![Crates.io](https://img.shields.io/crates/v/seia)](https://docs.rs/seia)
 [![CI](https://img.shields.io/github/actions/workflow/status/celestia-island/seia/checks.yml)](https://github.com/celestia-island/seia/actions/workflows/checks.yml)
