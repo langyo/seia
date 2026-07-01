@@ -60,15 +60,16 @@ just test-proxy  # 通过 localhost:7890 代理运行测试（见 tests/README�
 
 ## 支持的搜索引擎
 
-| 引擎 | 认证 | 状态 |
-|------|------|------|
-| [Wikipedia](https://www.mediawiki.org/wiki/API:Search) | 无 | ✅ |
-| [SearXNG](https://docs.searxng.org/) | `SEARXNG_URL` | ✅ |
-| [Tavily](https://docs.tavily.com/) | `TAVILY_API_KEY` | ✅ |
-| [Bing](https://learn.microsoft.com/en-us/bing/search-apis/bing-web-search/) | `BING_SEARCH_API_KEY` | ✅ |
-| [Brave](https://api.search.brave.com/app/documentation) | `BRAVE_SEARCH_API_KEY` | ✅ |
-| [智谱 (Zhipu)](https://docs.bigmodel.cn/cn/guide/tools/web-search) | `ZHIPU_API_KEY` | ✅ |
-| [博查 (Bocha)](https://open.bochaai.com/docs) | `BOCHA_API_KEY` | ✅ |
+| 引擎 | 认证 |
+|------|------|
+| [Wikipedia](https://www.mediawiki.org/wiki/API:Search) | 无 |
+| [SearXNG](https://docs.searxng.org/) | `SEARXNG_URL` |
+| [Tavily](https://docs.tavily.com/) | `TAVILY_API_KEY` |
+| [Bing](https://learn.microsoft.com/en-us/bing/search-apis/bing-web-search/) | `BING_SEARCH_API_KEY` |
+| [Brave](https://api.search.brave.com/app/documentation) | `BRAVE_SEARCH_API_KEY` |
+| [秘塔 (MetaSo)](https://metaso.cn/search-api/playground) | `METASO_API_KEY` |
+| [智谱 (Zhipu)](https://docs.bigmodel.cn/cn/guide/tools/web-search) | `ZHIPU_API_KEY` |
+| [博查 (Bocha)](https://open.bochaai.com/docs) | `BOCHA_API_KEY` |
 
 ## 许可证
 
