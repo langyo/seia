@@ -2,7 +2,7 @@
 //!
 //! Scrapes https://html.duckduckgo.com/html/ and parses result anchors.
 
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use scraper::{Html, Selector};
 
 use crate::client::SearchOptions;
@@ -22,7 +22,22 @@ pub async fn search(
     let resp = http.get(&url).send().await?;
     let html = resp.text().await?;
 
+    // DuckDuckGo sometimes serves a CAPTCHA / anomaly challenge instead of
+    // results (especially from flagged IPs — proxy, VPS, Tor). Return an
+    // explicit error so the fallback system can try the next engine instead
+    // of silently reporting "0 results".
+    if html.contains("anomaly-modal") || html.contains("Unfortunately, bots use DuckDuckGo too") {
+        return Err(anyhow!(
+            "DuckDuckGo served a CAPTCHA challenge (proxy/VPS IP may be flagged). \
+             Try --engine wikipedia or use a different proxy."
+        ));
+    }
+
     let items = parse_ddg_html(&html);
+
+    if items.is_empty() {
+        return Err(anyhow!("DuckDuckGo returned 0 results for: {query}"));
+    }
 
     Ok((items, SearchMode::Scrape))
 }
