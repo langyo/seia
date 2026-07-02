@@ -1,9 +1,9 @@
 //! Brave Search API — independent web index, no Big Tech dependency.
 //!
 //! Free tier: 2 000 queries/month (Web Search, base plan).
-//! Set BRAVE_SEARCH_API_KEY. Get one at https://brave.com/search/api/.
+//! Set `BRAVE_SEARCH_API_KEY`. Get one at <https://brave.com/search/api/>.
 //!
-//! API reference: https://api-dashboard.search.brave.com/app/documentation/web-search/get-started
+//! API reference: <https://api-dashboard.search.brave.com/app/documentation/web-search/get-started>
 
 use anyhow::{Result, anyhow};
 use serde::Deserialize;

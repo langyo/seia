@@ -5,9 +5,9 @@
 //! names and icons. Supports multiple backing engines: 智谱基础版 (`search_std`),
 //! 智谱高阶版 (`search_pro`), 搜狗 (`search_pro_sogou`), 夸克 (`search_pro_quark`).
 //!
-//! Set `ZHIPU_API_KEY`. Get one at https://bigmodel.cn/usercenter/proj-mgmt/apikeys.
+//! Set `ZHIPU_API_KEY`. Get one at <https://bigmodel.cn/usercenter/proj-mgmt/apikeys>.
 //!
-//! API reference: https://docs.bigmodel.cn/cn/guide/tools/web-search
+//! API reference: <https://docs.bigmodel.cn/cn/guide/tools/web-search>
 
 use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};

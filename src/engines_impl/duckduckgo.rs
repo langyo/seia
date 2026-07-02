@@ -1,6 +1,6 @@
 //! DuckDuckGo HTML scraping — free, no API key.
 //!
-//! Scrapes https://html.duckduckgo.com/html/ and parses result anchors.
+//! Scrapes <https://html.duckduckgo.com/html/> and parses result anchors.
 
 use anyhow::{Result, anyhow};
 use scraper::{Html, Selector};

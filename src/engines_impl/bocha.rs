@@ -3,9 +3,9 @@
 //! An LLM-oriented search engine returning clean web results with summaries.
 //! Covers web pages, news, encyclopedia, video. Free tier available.
 //!
-//! Set `BOCHA_API_KEY`. Get one at https://open.bochaai.com/.
+//! Set `BOCHA_API_KEY`. Get one at <https://open.bochaai.com/>.
 //!
-//! API reference: https://open.bochaai.com/docs (POST /v1/web-search)
+//! API reference: <https://open.bochaai.com/docs> (POST /v1/web-search)
 
 use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};

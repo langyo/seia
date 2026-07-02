@@ -69,6 +69,7 @@ just test        # cargo test
 
 | Engine | Auth |
 |--------|------|
+| [DuckDuckGo](https://duckduckgo.com/) | None |
 | [Wikipedia](https://www.mediawiki.org/wiki/API:Search) | None |
 | [SearXNG](https://docs.searxng.org/) | `SEARXNG_URL` |
 | [Tavily](https://docs.tavily.com/) | `TAVILY_API_KEY` |

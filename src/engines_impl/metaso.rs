@@ -5,16 +5,16 @@
 //! with a free starter grant. Supports web / academic / document / image
 //! scopes, plus per-page LLM summaries.
 //!
-//! Set `METASO_API_KEY`. Get one at https://metaso.cn/search-api/api-keys.
+//! Set `METASO_API_KEY`. Get one at <https://metaso.cn/search-api/api-keys>.
 //!
 //! Request contract (recovered from the official playground at
-//! https://metaso.cn/search-api/playground):
-//!   POST https://metaso.cn/api/v1/search
-//!   Authorization: Bearer <key>
+//! <https://metaso.cn/search-api/playground>):
+//!   POST <https://metaso.cn/api/v1/search>
+//!   Authorization: Bearer `key`
 //!   Content-Type: application/json
 //!   {
 //!     "mode": "search",
-//!     "q": "<query>",
+//!     "q": "`query`",
 //!     "scope": "webpage",          // METASO_SCOPE override
 //!     "size": "10",
 //!     "includeSummary": true,
