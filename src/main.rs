@@ -102,9 +102,5 @@ async fn main() -> anyhow::Result<()> {
 }
 
 fn truncate(s: &str, max: usize) -> String {
-    if s.len() <= max {
-        s.to_string()
-    } else {
-        format!("{}...", &s[..max])
-    }
+    seia::utils::truncate(s, max)
 }

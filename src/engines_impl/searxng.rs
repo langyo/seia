@@ -56,16 +56,6 @@ struct SearxngItem {
 
 mod urlencoding {
     pub fn encode(input: &str) -> String {
-        let mut out = String::with_capacity(input.len() * 3);
-        for byte in input.bytes() {
-            match byte {
-                b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
-                    out.push(byte as char);
-                }
-                b' ' => out.push_str("%20"),
-                _ => out.push_str(&format!("%{:02X}", byte)),
-            }
-        }
-        out
+        crate::utils::urlencode_query(input)
     }
 }

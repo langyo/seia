@@ -130,6 +130,7 @@ mod tests {
         let result = seia::SearchResult {
             engine: "test".to_string(),
             query: "hello".to_string(),
+            mode: seia::SearchMode::Api,
             items: vec![seia::SearchItem {
                 title: "Test".to_string(),
                 url: "https://example.com".to_string(),

@@ -87,11 +87,7 @@ struct BraveItem {
 }
 
 fn truncate(s: &str) -> String {
-    if s.len() > 400 {
-        format!("{}...", &s[..400])
-    } else {
-        s.to_string()
-    }
+    crate::utils::truncate(s, 400)
 }
 
 #[cfg(test)]

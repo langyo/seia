@@ -16,7 +16,7 @@ pub async fn search(
 ) -> Result<EngineOutput> {
     let url = format!(
         "https://html.duckduckgo.com/html/?q={}",
-        urlencoding::encode(query)
+        crate::utils::urlencode_query(query)
     );
 
     let resp = http.get(&url).send().await?;
@@ -134,20 +134,6 @@ fn extract_ddg_url(raw: &str) -> String {
 }
 
 mod urlencoding {
-    pub fn encode(input: &str) -> String {
-        let mut out = String::with_capacity(input.len() * 3);
-        for byte in input.bytes() {
-            match byte {
-                b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
-                    out.push(byte as char);
-                }
-                b' ' => out.push_str("%20"),
-                _ => out.push_str(&format!("%{:02X}", byte)),
-            }
-        }
-        out
-    }
-
     pub fn decode(input: &str) -> Result<String, std::string::FromUtf8Error> {
         let mut out = Vec::new();
         let bytes = input.as_bytes();
@@ -224,9 +210,12 @@ mod tests {
 
     #[test]
     fn test_url_encoding() {
-        assert_eq!(urlencoding::encode("hello world"), "hello%20world");
-        assert_eq!(urlencoding::encode("a+b=c"), "a%2Bb%3Dc");
-        assert_eq!(urlencoding::encode("safe123-_.~"), "safe123-_.~");
+        assert_eq!(
+            crate::utils::urlencode_query("hello world"),
+            "hello%20world"
+        );
+        assert_eq!(crate::utils::urlencode_query("a+b=c"), "a%2Bb%3Dc");
+        assert_eq!(crate::utils::urlencode_query("safe123-_.~"), "safe123-_.~");
     }
 
     #[test]

@@ -55,7 +55,7 @@ impl SearchClient {
     ) -> Result<SearchResult> {
         let start = Instant::now();
 
-        let (items, _mode) = match engine {
+        let (items, mode) = match engine {
             Engine::Duckduckgo => {
                 crate::engines_impl::duckduckgo::search(&self.http, query, &opts).await?
             }
@@ -91,6 +91,7 @@ impl SearchClient {
         Ok(SearchResult {
             engine: engine.as_str().to_string(),
             query: query.to_string(),
+            mode,
             elapsed_ms: start.elapsed().as_millis() as u64,
             items,
         })

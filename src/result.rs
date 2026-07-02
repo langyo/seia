@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 pub struct SearchResult {
     pub engine: String,
     pub query: String,
+    pub mode: SearchMode,
     pub items: Vec<SearchItem>,
     pub elapsed_ms: u64,
 }

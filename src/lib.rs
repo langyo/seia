@@ -9,6 +9,7 @@ pub mod engines;
 pub mod engines_impl;
 pub mod extractor;
 pub mod result;
+pub mod utils;
 
 pub use client::{SearchClient, SearchOptions};
 pub use engines::Engine;
