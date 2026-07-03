@@ -2,7 +2,7 @@
 
 <h1 align="center">seia</h1>
 
-<p align="center"><strong>Knowledge from every source</strong></p>
+<p align="center"><strong>Multi-engine web search</strong></p>
 
 <div align="center">
 

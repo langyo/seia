@@ -2,7 +2,7 @@
 
 <h1 align="center">seia</h1>
 
-<p align="center"><strong>Знания из любых источников</strong></p>
+<p align="center"><strong>Мультидвижковый веб-поиск</strong></p>
 
 <div align="center">
 

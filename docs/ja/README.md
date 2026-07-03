@@ -2,7 +2,7 @@
 
 <h1 align="center">seia</h1>
 
-<p align="center"><strong>あらゆる情報源から知識を</strong></p>
+<p align="center"><strong>マルチエンジンウェブ検索</strong></p>
 
 <div align="center">
 

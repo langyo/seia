@@ -2,7 +2,7 @@
 
 <h1 align="center">seia</h1>
 
-<p align="center"><strong>Conocimiento de todas las fuentes</strong></p>
+<p align="center"><strong>Búsqueda web multi-motor</strong></p>
 
 <div align="center">
 

@@ -2,7 +2,7 @@
 
 <h1 align="center">seia</h1>
 
-<p align="center"><strong>المعرفة من كل المصادر</strong></p>
+<p align="center"><strong>بحث ويب متعدد المحركات</strong></p>
 
 <div align="center">
 

@@ -2,7 +2,7 @@
 
 <h1 align="center">seia</h1>
 
-<p align="center"><strong>모든 출처의 지식을 탐색하다</strong></p>
+<p align="center"><strong>멀티 엔진 웹 검색</strong></p>
 
 <div align="center">
 

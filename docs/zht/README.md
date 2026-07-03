@@ -2,7 +2,7 @@
 
 <h1 align="center">seia</h1>
 
-<p align="center"><strong>閱覽網際網路上的知識</strong></p>
+<p align="center"><strong>多引擎網路搜尋</strong></p>
 
 <div align="center">
 
