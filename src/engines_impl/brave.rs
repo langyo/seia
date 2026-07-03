@@ -14,6 +14,12 @@ use crate::result::{SearchItem, SearchMode};
 
 const ENDPOINT: &str = "https://api.search.brave.com/res/v1/web/search";
 
+/// Search with the Brave Search API.
+///
+/// # Errors
+///
+/// Returns `Err` when `BRAVE_SEARCH_API_KEY` is missing, the HTTP request
+/// fails, or the API returns a non-2xx status.
 pub async fn search(
     http: &reqwest::Client,
     query: &str,

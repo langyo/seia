@@ -1,6 +1,9 @@
 //! Shared utilities — URL encoding helpers and text helpers.
 
-/// Percent-encode a string (space → `%20`). Used by DuckDuckGo, Wikipedia, SearXNG.
+use std::fmt::Write;
+
+/// Percent-encode a string (space → `%20`). Used by `DuckDuckGo`, Wikipedia, `SearXNG`.
+#[must_use]
 pub fn urlencode_query(input: &str) -> String {
     let mut out = String::with_capacity(input.len() * 3);
     for byte in input.bytes() {
@@ -9,13 +12,16 @@ pub fn urlencode_query(input: &str) -> String {
                 out.push(byte as char);
             }
             b' ' => out.push_str("%20"),
-            _ => out.push_str(&format!("%{:02X}", byte)),
+            _ => {
+                let _ = write!(out, "%{byte:02X}");
+            }
         }
     }
     out
 }
 
 /// Truncate a string to at most `max` chars, appending "..." if cut.
+#[must_use]
 pub fn truncate(s: &str, max: usize) -> String {
     if s.len() > max {
         format!("{}...", &s[..max])

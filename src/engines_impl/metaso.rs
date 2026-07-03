@@ -15,7 +15,7 @@
 //!   {
 //!     "mode": "search",
 //!     "q": "`query`",
-//!     "scope": "webpage",          // METASO_SCOPE override
+//!     "scope": "webpage",          // `METASO_SCOPE` override
 //!     "size": "10",
 //!     "includeSummary": true,
 //!     "conciseSnippet": false
@@ -40,6 +40,12 @@ const ENDPOINT: &str = "https://metaso.cn/api/v1/search";
 /// `METASO_SCOPE`.
 const DEFAULT_SCOPE: &str = "webpage";
 
+/// Search with the 秘塔 (Metaso) Web Search API.
+///
+/// # Errors
+///
+/// Returns `Err` when `METASO_API_KEY` is missing, the HTTP request fails, or
+/// the API returns a non-2xx status.
 pub async fn search(
     http: &reqwest::Client,
     query: &str,
@@ -140,7 +146,7 @@ fn walk_for_results(value: &serde_json::Value, out: &mut Vec<SearchItem>, depth:
     }
 }
 
-/// Map one JSON object onto a SearchItem, iff it has a URL-like field.
+/// Map one JSON object onto a `SearchItem`, iff it has a URL-like field.
 fn parse_result(obj: &serde_json::Value) -> Option<SearchItem> {
     let serde_json::Value::Object(map) = obj else {
         return None;

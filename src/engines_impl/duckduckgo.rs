@@ -1,4 +1,4 @@
-//! DuckDuckGo HTML scraping — free, no API key.
+//! `DuckDuckGo` HTML scraping — free, no API key.
 //!
 //! Scrapes <https://html.duckduckgo.com/html/> and parses result anchors.
 
@@ -9,6 +9,11 @@ use crate::client::SearchOptions;
 use crate::engines_impl::EngineOutput;
 use crate::result::{SearchItem, SearchMode};
 
+/// Search using `DuckDuckGo` HTML scraping.
+///
+/// # Errors
+///
+/// Returns `Err` on network failure, CAPTCHA challenge, or zero results.
 pub async fn search(
     http: &reqwest::Client,
     query: &str,
@@ -50,9 +55,8 @@ fn parse_ddg_html(html: &str) -> Vec<SearchItem> {
     // always comes from the SAME result as the link (positional nth() misaligns
     // when a link is skipped).
     let result_sel = Selector::parse("div.result, div.web-result").ok();
-    let link_sel = match Selector::parse("a.result__a") {
-        Ok(s) => s,
-        Err(_) => return items,
+    let Ok(link_sel) = Selector::parse("a.result__a") else {
+        return items;
     };
     let snippet_sel = Selector::parse(".result__snippet").ok();
 
@@ -115,7 +119,7 @@ fn parse_ddg_html(html: &str) -> Vec<SearchItem> {
     items
 }
 
-/// DuckDuckGo wraps URLs in /l/?uddg=... redirect. Extract the real URL.
+/// `DuckDuckGo` wraps URLs in /l/?uddg=... redirect. Extract the real URL.
 fn extract_ddg_url(raw: &str) -> String {
     if let Some(start) = raw.find("uddg=") {
         let after = &raw[start + 5..];
@@ -127,7 +131,7 @@ fn extract_ddg_url(raw: &str) -> String {
     if raw.starts_with("http") {
         raw.to_string()
     } else if raw.starts_with("//") {
-        format!("https:{}", raw)
+        format!("https:{raw}")
     } else {
         raw.to_string()
     }

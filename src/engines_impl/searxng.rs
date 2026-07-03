@@ -1,6 +1,6 @@
-//! SearXNG — self-hosted meta-search engine.
+//! `SearXNG` — self-hosted meta-search engine.
 //!
-//! No API key needed. Set SEARXNG_URL env var or pass via SearchOptions.
+//! No API key needed. Set `SEARXNG_URL` env var or pass via `SearchOptions`.
 
 use anyhow::{Result, anyhow};
 use serde::Deserialize;
@@ -9,6 +9,12 @@ use crate::client::SearchOptions;
 use crate::engines_impl::EngineOutput;
 use crate::result::{SearchItem, SearchMode};
 
+/// Search using a self-hosted `SearXNG` instance.
+///
+/// # Errors
+///
+/// Returns `Err` when `SEARXNG_URL` is missing, the HTTP request fails, or
+/// the instance returns a non-OK response.
 pub async fn search(
     http: &reqwest::Client,
     query: &str,

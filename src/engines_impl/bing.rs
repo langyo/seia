@@ -1,7 +1,7 @@
 //! Bing Web Search API v7.
 //!
 //! Microsoft Azure Cognitive Services. Free tier: 1 000 calls/month.
-//! Set BING_SEARCH_API_KEY (an Azure subscription key, sometimes called
+//! Set `BING_SEARCH_API_KEY` (an Azure subscription key, sometimes called
 //! Ocp-Apim-Subscription-Key). Get one at Azure Portal → Bing Search v7.
 
 use anyhow::{Result, anyhow};
@@ -11,10 +11,16 @@ use crate::client::SearchOptions;
 use crate::engines_impl::EngineOutput;
 use crate::result::{SearchItem, SearchMode};
 
-/// Default Bing Search v7 endpoint. Override with BING_SEARCH_ENDPOINT for
+/// Default Bing Search v7 endpoint. Override with `BING_SEARCH_ENDPOINT` for
 /// sovereign clouds or self-hosted proxies.
 const DEFAULT_ENDPOINT: &str = "https://api.bing.microsoft.com";
 
+/// Search with the Bing Web Search API v7.
+///
+/// # Errors
+///
+/// Returns `Err` when `BING_SEARCH_API_KEY` is missing, the HTTP request
+/// fails, or the API returns a non-2xx status.
 pub async fn search(
     http: &reqwest::Client,
     query: &str,
@@ -95,6 +101,8 @@ fn truncate(s: &str) -> String {
 }
 
 mod urlencode {
+    use std::fmt::Write;
+
     pub fn encode(input: &str) -> String {
         let mut out = String::with_capacity(input.len() * 3);
         for byte in input.bytes() {
@@ -103,7 +111,9 @@ mod urlencode {
                     out.push(byte as char);
                 }
                 b' ' => out.push('+'),
-                _ => out.push_str(&format!("%{:02X}", byte)),
+                _ => {
+                    let _ = write!(out, "%{byte:02X}");
+                }
             }
         }
         out

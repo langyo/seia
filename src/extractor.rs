@@ -6,6 +6,11 @@
 use anyhow::Result;
 use scraper::{Html, Selector};
 
+/// Fetch and clean the main text content from a URL.
+///
+/// # Errors
+///
+/// Returns `Err` on network failure or if the response body cannot be read.
 pub async fn fetch_content(http: &reqwest::Client, url: &str) -> Result<String> {
     let resp = http.get(url).send().await?;
     let html = resp.text().await?;
@@ -53,7 +58,7 @@ fn extract_main_text(html: &str) -> String {
 
 fn clean_text(text: &str) -> String {
     text.lines()
-        .map(|l| l.trim())
+        .map(str::trim)
         .filter(|l| !l.is_empty())
         .collect::<Vec<_>>()
         .join("\n")

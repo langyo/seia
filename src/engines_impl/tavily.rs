@@ -1,6 +1,6 @@
 //! Tavily search API — AI-optimized search, returns clean content.
 //!
-//! Free tier: 1000 queries/month. Set TAVILY_API_KEY env var.
+//! Free tier: 1000 queries/month. Set `TAVILY_API_KEY` env var.
 
 use anyhow::{Result, anyhow};
 use serde::Deserialize;
@@ -9,6 +9,12 @@ use crate::client::SearchOptions;
 use crate::engines_impl::EngineOutput;
 use crate::result::{SearchItem, SearchMode};
 
+/// Search with the Tavily Search API.
+///
+/// # Errors
+///
+/// Returns `Err` when `TAVILY_API_KEY` is missing, the HTTP request fails, or
+/// the API returns a non-OK response.
 pub async fn search(
     http: &reqwest::Client,
     query: &str,

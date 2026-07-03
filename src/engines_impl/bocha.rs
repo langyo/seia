@@ -16,6 +16,12 @@ use crate::result::{SearchItem, SearchMode};
 
 const ENDPOINT: &str = "https://api.bochaai.com/v1/web-search";
 
+/// Search with the 博查 (Bocha) Web Search API.
+///
+/// # Errors
+///
+/// Returns `Err` when `BOCHA_API_KEY` is missing, the HTTP request fails, or
+/// the API returns a non-2xx status.
 pub async fn search(
     http: &reqwest::Client,
     query: &str,

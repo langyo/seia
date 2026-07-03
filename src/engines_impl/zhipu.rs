@@ -1,4 +1,4 @@
-//! 智谱 (Zhipu / BigModel) Web Search API.
+//! 智谱 (Zhipu / `BigModel`) Web Search API.
 //!
 //! A search engine built for LLMs, with intent recognition on top of
 //! traditional web crawling/ranking. Returns titles, URLs, snippets, media
@@ -36,7 +36,7 @@ enum ZhipuSearchEngine {
 }
 
 impl ZhipuSearchEngine {
-    fn as_str(self) -> &'static str {
+    const fn as_str(self) -> &'static str {
         match self {
             Self::Std => "search_std",
             Self::Pro => "search_pro",
@@ -46,6 +46,12 @@ impl ZhipuSearchEngine {
     }
 }
 
+/// Search using the 智谱 (Zhipu) Web Search API.
+///
+/// # Errors
+///
+/// Returns `Err` when `ZHIPU_API_KEY` is missing, the HTTP request fails, or
+/// the API returns a non-2xx status.
 pub async fn search(
     http: &reqwest::Client,
     query: &str,
@@ -56,8 +62,8 @@ pub async fn search(
 
     let engine = match std::env::var("ZHIPU_SEARCH_ENGINE").ok().as_deref() {
         Some("search_pro") => ZhipuSearchEngine::Pro,
-        Some("search_pro_sogou") | Some("sogou") => ZhipuSearchEngine::Sogou,
-        Some("search_pro_quark") | Some("quark") => ZhipuSearchEngine::Quark,
+        Some("search_pro_sogou" | "sogou") => ZhipuSearchEngine::Sogou,
+        Some("search_pro_quark" | "quark") => ZhipuSearchEngine::Quark,
         _ => ZhipuSearchEngine::Std,
     };
 
@@ -151,8 +157,8 @@ mod tests {
             let engine = match raw {
                 None => ZhipuSearchEngine::Std,
                 Some("search_pro") => ZhipuSearchEngine::Pro,
-                Some("search_pro_sogou") | Some("sogou") => ZhipuSearchEngine::Sogou,
-                Some("search_pro_quark") | Some("quark") => ZhipuSearchEngine::Quark,
+                Some("search_pro_sogou" | "sogou") => ZhipuSearchEngine::Sogou,
+                Some("search_pro_quark" | "quark") => ZhipuSearchEngine::Quark,
                 Some(_) => ZhipuSearchEngine::Std,
             };
             assert_eq!(engine.as_str(), expected);

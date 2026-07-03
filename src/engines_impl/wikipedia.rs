@@ -1,6 +1,6 @@
 //! Wikipedia API — free, unlimited, perfect for academic/knowledge queries.
 //!
-//! Uses the official MediaWiki Action API. No key needed.
+//! Uses the official `MediaWiki` Action API. No key needed.
 
 use anyhow::Result;
 use serde::Deserialize;
@@ -9,6 +9,11 @@ use crate::client::SearchOptions;
 use crate::engines_impl::EngineOutput;
 use crate::result::{SearchItem, SearchMode};
 
+/// Search Wikipedia using the `MediaWiki` Action API.
+///
+/// # Errors
+///
+/// Returns `Err` on network failure or if the response cannot be parsed.
 pub async fn search(
     http: &reqwest::Client,
     query: &str,
@@ -40,12 +45,11 @@ pub async fn search(
 }
 
 /// Fetch the full intro section of a Wikipedia article by title.
+///
+/// # Errors
+///
+/// Returns `Err` on network failure or if the response cannot be parsed.
 pub async fn fetch_intro(http: &reqwest::Client, title: &str) -> Result<String> {
-    let url = format!(
-        "https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro&explaintext&titles={}&format=json",
-        urlencoding::encode(title)
-    );
-
     #[derive(Deserialize)]
     struct Resp {
         query: PageQuery,
@@ -58,6 +62,11 @@ pub async fn fetch_intro(http: &reqwest::Client, title: &str) -> Result<String> 
     struct Page {
         extract: Option<String>,
     }
+
+    let url = format!(
+        "https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro&explaintext&titles={}&format=json",
+        urlencoding::encode(title)
+    );
 
     let resp: Resp = http.get(&url).send().await?.json().await?;
     let extract = resp
