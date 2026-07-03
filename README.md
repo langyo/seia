@@ -15,14 +15,15 @@
 
 <div align="center">
 **English** ·
-<a href="./docs/zhs/README.md">简体中文</a> ·
-<a href="./docs/zht/README.md">繁體中文</a> ·
-<a href="./docs/ja/README.md">日本語</a> ·
-<a href="./docs/ko/README.md">한국어</a> ·
-<a href="./docs/fr/README.md">Français</a> ·
-<a href="./docs/es/README.md">Español</a> ·
-<a href="./docs/ru/README.md">Русский</a> ·
-<a href="./docs/ar/README.md">العربية</a>
+[简体中文](./docs/zhs/README.md) ·
+[繁體中文](./docs/zht/README.md) ·
+[日本語](./docs/ja/README.md) ·
+[한국어](./docs/ko/README.md) ·
+[Français](./docs/fr/README.md) ·
+[Español](./docs/es/README.md) ·
+[Русский](./docs/ru/README.md) ·
+[العربية](./docs/ar/README.md)
+
 </div>
 
 ## Introduction
