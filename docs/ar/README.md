@@ -83,4 +83,4 @@ just test-proxy  # run tests through localhost:7890 proxy (see tests/README)
 
 ## الترخيص
 
-SySL-1.0 (ترخيص المصدر التركيبي). انظر [LICENSE](../../LICENSE).
+SySL-1.0（Synthetic Source License）。انظر [LICENSE](../../LICENSE)。

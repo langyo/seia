@@ -78,4 +78,4 @@ just test-proxy  # run tests through localhost:7890 proxy (see tests/README)
 
 ## 授權條款
 
-SySL-1.0（合成原始碼授權）。詳見 [LICENSE](../../LICENSE)。
+SySL-1.0（Synthetic Source License）。詳見 [LICENSE](../../LICENSE)。
