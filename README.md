@@ -63,6 +63,7 @@ let results = client.search("rust async", Engine::Wikipedia).await?;
 ```bash
 just ci          # fmt-check + clippy + test
 just test        # cargo test
+just test-proxy  # run tests through localhost:7890 proxy (see tests/README)
 ```
 
 ## Supported Search Engines

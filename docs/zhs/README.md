@@ -2,14 +2,18 @@
 
 <h1 align="center">seia</h1>
 
-<div align="center">
+<p align="center"><strong>阅览互联网上的知识</strong></p>
 
-<strong>阅览互联网上的知识</strong>
+<div align="center">
 
 [![License: SySL-1.0](https://img.shields.io/badge/License-SySL--1.0-blue.svg)](../../LICENSE)
 [![Crates.io](https://img.shields.io/crates/v/seia)](https://docs.rs/seia)
 [![CI](https://img.shields.io/github/actions/workflow/status/celestia-island/seia/checks.yml)](https://github.com/celestia-island/seia/actions/workflows/checks.yml)
 [![Docs](https://img.shields.io/badge/docs-seia.docs.celestia.world-blue)](https://seia.docs.celestia.world)
+
+</div>
+
+<div align="center">
 
 [English](../en/README.md) · **简体中文** ·
 [繁體中文](../zht/README.md) · [日本語](../ja/README.md) ·
@@ -28,16 +32,16 @@ seia 是一个多引擎 Web 搜索库与 CLI 工具。通过统一接口访问�
 ### CLI
 
 ```bash
-# 基础搜索（无需 API 密钥）
-seia search "rust 异步模式"
+# Basic search (no API key required)
+seia search "rust async patterns"
 
-# 选择某个搜索引擎
-seia search "克莱因瓶" --engine wikipedia
+# Choose a specific engine
+seia search "Klein bottle" --engine wikipedia
 
-# JSON 输出
-seia search "气候变化" --json
+# JSON output
+seia search "climate change" --json
 
-# 通过代理
+# Through a proxy
 HTTPS_PROXY=http://localhost:7890 seia search "hello world"
 ```
 
@@ -47,21 +51,22 @@ HTTPS_PROXY=http://localhost:7890 seia search "hello world"
 use seia::{SearchClient, Engine};
 
 let client = SearchClient::new();
-let results = client.search("rust 异步", Engine::Wikipedia).await?;
+let results = client.search("rust async", Engine::Wikipedia).await?;
 ```
 
 ## 开发
 
 ```bash
-just ci          # 格式化检查 + clippy + 测试
-just test        # 运行测试
-just test-proxy  # 通过 localhost:7890 代理运行测试（见 tests/README）
+just ci          # fmt-check + clippy + test
+just test        # cargo test
+just test-proxy  # run tests through localhost:7890 proxy (see tests/README)
 ```
 
 ## 支持的搜索引擎
 
 | 引擎 | 认证 |
 |------|------|
+| [DuckDuckGo](https://duckduckgo.com/) | 无 |
 | [Wikipedia](https://www.mediawiki.org/wiki/API:Search) | 无 |
 | [SearXNG](https://docs.searxng.org/) | `SEARXNG_URL` |
 | [Tavily](https://docs.tavily.com/) | `TAVILY_API_KEY` |
