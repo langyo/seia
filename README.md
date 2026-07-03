@@ -25,6 +25,8 @@
 <a href="./docs/ar/README.md">العربية</a>
 </div>
 
+<p align="center"><img src="res/search_solarized_dark.png" alt="seia search results" /></p>
+
 ## Introduction
 
 seia is a multi-engine web search library and CLI. It provides a unified
