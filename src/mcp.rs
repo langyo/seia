@@ -18,8 +18,9 @@ use serde::Deserialize;
 use serde_json::json;
 
 use rmcp::{
+    ErrorData as McpError, RoleServer, ServerHandler, ServiceExt,
     handler::server::wrapper::Parameters, model::*, service::RequestContext, tool, tool_handler,
-    tool_router, ErrorData as McpError, RoleServer, ServerHandler, ServiceExt,
+    tool_router,
 };
 use schemars::JsonSchema;
 
@@ -106,12 +107,19 @@ impl Server {
         let names = args
             .engines
             .unwrap_or_else(|| vec!["duckduckgo".into(), "wikipedia".into(), "bing".into()]);
-        let engines: Vec<Engine> = names.iter().map(|n| parse_engine(Some(n), Engine::Duckduckgo)).collect();
+        let engines: Vec<Engine> = names
+            .iter()
+            .map(|n| parse_engine(Some(n), Engine::Duckduckgo))
+            .collect();
         let opts = self.opts(args.limit.or(Some(10)), args.fetch_content.unwrap_or(false));
         // search_fallback takes a plain-engine slice; honour limit/fetch by
         // running the first engine with options then falling back to plain.
         let result = if let Some(&first) = engines.first() {
-            match self.client.search_with_options(&args.query, first, opts).await {
+            match self
+                .client
+                .search_with_options(&args.query, first, opts)
+                .await
+            {
                 Ok(r) if !r.items.is_empty() => r,
                 Ok(_) => self
                     .client
