@@ -129,4 +129,4 @@ just test-proxy  # run tests through localhost:7890 proxy (see tests/integration
 
 ## License
 
-SySL-1.0 (Synthetic Source License). See [LICENSE](https://sysl.celestia.world).
+SySL-1.0 (Synthetic Source License). See [LICENSE](./LICENSE) or the [SySL website](https://sysl.celestia.world).
