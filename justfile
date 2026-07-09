@@ -26,3 +26,14 @@ test-proxy:
 build:
     cargo build --all-features
 ci: fmt-check clippy test
+
+# ── npx distribution (local dry-run) ─────────────────────────────────────────
+#
+# Wraps the shared recipe from celestia-devtools.just with seia's metadata. CI
+# does the actual publish (see .github/workflows/npm-release.yml); locally this
+# only stages ./dist and runs `npm pack --dry-run`.
+#
+#   just npm-dist-local                                       # reassemble root from existing dist/
+#   just npm-dist-local 0.1.0 path/to/seia x86_64-pc-windows-msvc
+npm-dist-local version='' binary='' target='':
+    just npm-dist seia {{version}} {{binary}} {{target}}

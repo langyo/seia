@@ -52,6 +52,23 @@ seia search "climate change" --json
 HTTPS_PROXY=http://localhost:7890 seia search "hello world"
 ```
 
+### npx (no Rust toolchain required)
+
+Prebuilt binaries are published to npm, so you can run `seia` with a single
+command — no `cargo build`:
+
+```bash
+npx @celestia-island/seia search "rust async patterns"
+npx @celestia-island/seia mcp        # the MCP server (needs the mcp build)
+```
+
+The `@celestia-island/seia` root package pulls the right platform subpackage
+(`-linux-x64` / `-darwin-arm64` / `-win32-x64`) automatically. To pin a version:
+
+```bash
+npx @celestia-island/seia@0.1.0 search "Klein bottle" --engine wikipedia
+```
+
 ### Library
 
 ```rust
