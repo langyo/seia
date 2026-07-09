@@ -109,7 +109,7 @@ Set `SEIA_PROXY` to route search requests through a proxy
 ```bash
 just ci          # fmt-check + clippy + test
 just test        # cargo test
-just test-proxy  # run tests through localhost:7890 proxy (see tests/README)
+just test-proxy  # run tests through localhost:7890 proxy (see tests/integration.rs)
 ```
 
 ## Supported Search Engines
