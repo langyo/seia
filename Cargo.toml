@@ -1,0 +1,51 @@
+[package]
+name = "seia"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+authors = ["langyo <langyo.china@gmail.com>"]
+license-file = "LICENSE"
+readme = "README.md"
+description = "Multi-engine web search library"
+repository = "https://github.com/celestia-island/seia"
+keywords = ["search", "web", "duckduckgo", "tavily", "searxng"]
+categories = ["api-bindings", "web-programming", "command-line-interface"]
+exclude = ["docs/", "justfile", ".github/"]
+
+[package.metadata.docs.rs]
+all-features = true
+
+[[bin]]
+name = "seia"
+path = "src/main.rs"
+
+[lib]
+name = "seia"
+path = "src/lib.rs"
+
+[dependencies]
+tokio = { version = "^1", features = ["full"] }
+reqwest = { version = "^0.12", features = ["json", "rustls-tls", "socks"], default-features = false }
+serde = { version = "^1", features = ["derive"] }
+serde_json = "^1"
+anyhow = "^1"
+clap = { version = "^4", features = ["derive"] }
+tracing = "^0.1"
+tracing-subscriber = { version = "^0.3", features = ["env-filter"] }
+async-trait = "^0.1"
+url = "^2"
+regex = "^1"
+scraper = "^0.22"
+tokio-stream = "^0.1"
+# MCP (optional, for standalone MCP server)
+rmcp = { version = "^1", optional = true, features = ["server", "transport-io", "macros", "schemars"] }
+schemars = { version = "^1", optional = true, features = ["derive"] }
+
+[features]
+default = []
+# Standalone MCP (Model Context Protocol) server exposing the search tools over
+# stdio. Requires rmcp + schemars; pulls in tokio io-std at the binary level.
+mcp = ["dep:rmcp", "dep:schemars", "tokio/io-std"]
+
+[dev-dependencies]
+tokio-test = "^0.4"

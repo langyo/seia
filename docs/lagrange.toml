@@ -1,0 +1,8 @@
+[site]
+title = "Seia"
+description = "Universal search engine abstraction — multi-backend web search through official APIs and lightweight HTML scraping"
+
+cname = "seia.docs.celestia.world"
+[languages]
+default = "en"
+order = ["en", "zhs", "zht", "ja", "ko", "fr", "es", "ru", "ar"]
