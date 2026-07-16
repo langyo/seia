@@ -32,7 +32,9 @@ pub async fn search(
         .into_iter()
         .map(|p| SearchItem {
             title: p.title,
-            url: p.url.unwrap_or_else(|| format!("https://www.semanticscholar.org/paper/{}", p.paper_id)),
+            url: p
+                .url
+                .unwrap_or_else(|| format!("https://www.semanticscholar.org/paper/{}", p.paper_id)),
             snippet: p.r#abstract,
             content: None,
         })
@@ -68,7 +70,10 @@ mod tests {
         let papers = resp.data.unwrap();
         assert_eq!(papers.len(), 1);
         assert_eq!(papers[0].title, "Rust: Safe Systems Programming");
-        assert_eq!(papers[0].url.as_deref(), Some("https://www.semanticscholar.org/paper/abc123"));
+        assert_eq!(
+            papers[0].url.as_deref(),
+            Some("https://www.semanticscholar.org/paper/abc123")
+        );
     }
 
     #[test]

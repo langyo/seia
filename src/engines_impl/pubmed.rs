@@ -32,10 +32,7 @@ pub async fn search(
     }
 
     let esearch: ESearchResult = http.get(&search_url).send().await?.json().await?;
-    let ids: Vec<String> = esearch
-        .esearchresult
-        .idlist
-        .unwrap_or_default();
+    let ids: Vec<String> = esearch.esearchresult.idlist.unwrap_or_default();
 
     if ids.is_empty() {
         return Ok((vec![], SearchMode::Api));

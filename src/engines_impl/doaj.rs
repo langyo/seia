@@ -30,10 +30,7 @@ pub async fn search(
         .results
         .into_iter()
         .map(|a| SearchItem {
-            title: a
-                .bibjson
-                .title
-                .unwrap_or_else(|| "Untitled".to_string()),
+            title: a.bibjson.title.unwrap_or_else(|| "Untitled".to_string()),
             url: a
                 .bibjson
                 .link
@@ -42,10 +39,7 @@ pub async fn search(
                 .find(|l| l.url_type == Some("fulltext".to_string()))
                 .map(|l| l.url)
                 .unwrap_or_default(),
-            snippet: a
-                .bibjson
-                .r#abstract
-                .or_else(|| a.bibjson.keywords.clone()),
+            snippet: a.bibjson.r#abstract.or_else(|| a.bibjson.keywords.clone()),
             content: None,
         })
         .collect();

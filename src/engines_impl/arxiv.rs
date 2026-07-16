@@ -54,13 +54,10 @@ fn parse_atom_entries(xml: &str) -> Vec<SearchItem> {
             .and_then(|c| c.get(1))
             .map(|m| m.as_str().trim().to_string())
             .unwrap_or_default();
-        let snippet = summary_re
-            .captures(entry)
-            .and_then(|c| c.get(1))
-            .map(|m| {
-                let s = decode_xml_entities(m.as_str().trim());
-                crate::utils::truncate(&s, 300)
-            });
+        let snippet = summary_re.captures(entry).and_then(|c| c.get(1)).map(|m| {
+            let s = decode_xml_entities(m.as_str().trim());
+            crate::utils::truncate(&s, 300)
+        });
         if !title.is_empty() && !url.is_empty() {
             items.push(SearchItem {
                 title,
@@ -108,7 +105,10 @@ mod tests {
         let items = parse_atom_entries(xml);
         // Should skip the feed-level <title> and keep the 2 paper entries.
         assert_eq!(items.len(), 2);
-        assert_eq!(items[0].title, "Rust: A Safe Language for Systems Programming");
+        assert_eq!(
+            items[0].title,
+            "Rust: A Safe Language for Systems Programming"
+        );
         assert_eq!(items[0].url, "http://arxiv.org/abs/1234.5678v1");
         assert!(items[0].snippet.as_ref().unwrap().contains("memory safety"));
         assert_eq!(items[1].title, "Ownership Types in Practice");

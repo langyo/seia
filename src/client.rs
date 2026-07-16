@@ -118,21 +118,13 @@ impl SearchClient {
             Engine::OpenAlex => {
                 crate::engines_impl::openalex::search(&self.http, query, &opts).await?
             }
-            Engine::Arxiv => {
-                crate::engines_impl::arxiv::search(&self.http, query, &opts).await?
-            }
-            Engine::Core => {
-                crate::engines_impl::core::search(&self.http, query, &opts).await?
-            }
+            Engine::Arxiv => crate::engines_impl::arxiv::search(&self.http, query, &opts).await?,
+            Engine::Core => crate::engines_impl::core::search(&self.http, query, &opts).await?,
             Engine::CrossRef => {
                 crate::engines_impl::crossref::search(&self.http, query, &opts).await?
             }
-            Engine::Doaj => {
-                crate::engines_impl::doaj::search(&self.http, query, &opts).await?
-            }
-            Engine::PubMed => {
-                crate::engines_impl::pubmed::search(&self.http, query, &opts).await?
-            }
+            Engine::Doaj => crate::engines_impl::doaj::search(&self.http, query, &opts).await?,
+            Engine::PubMed => crate::engines_impl::pubmed::search(&self.http, query, &opts).await?,
             Engine::Custom(ref name) => {
                 let def = self
                     .registry

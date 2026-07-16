@@ -161,8 +161,8 @@ impl EngineRegistry {
     pub fn load() -> Result<Self> {
         let mut registry = Self::default();
 
-        let builtin: ConfigFile = toml::from_str(BUILTIN_TOML)
-            .context("parsing embedded builtin_engines.toml")?;
+        let builtin: ConfigFile =
+            toml::from_str(BUILTIN_TOML).context("parsing embedded builtin_engines.toml")?;
         registry.merge(builtin);
 
         if let Some(home) = dirs::home_dir() {
@@ -185,10 +185,8 @@ impl EngineRegistry {
 
         let local_config = PathBuf::from("seia.toml");
         if local_config.is_file() {
-            let content =
-                std::fs::read_to_string(&local_config).context("reading ./seia.toml")?;
-            let cfg: ConfigFile =
-                toml::from_str(&content).context("parsing ./seia.toml")?;
+            let content = std::fs::read_to_string(&local_config).context("reading ./seia.toml")?;
+            let cfg: ConfigFile = toml::from_str(&content).context("parsing ./seia.toml")?;
             registry.merge(cfg);
         }
 
@@ -203,8 +201,8 @@ impl EngineRegistry {
             .ok_or_else(|| anyhow::anyhow!("cannot determine home directory"))?;
         std::fs::create_dir_all(&dir)?;
 
-        let builtin: ConfigFile = toml::from_str(BUILTIN_TOML)
-            .context("parsing embedded builtin_engines.toml")?;
+        let builtin: ConfigFile =
+            toml::from_str(BUILTIN_TOML).context("parsing embedded builtin_engines.toml")?;
 
         for (name, def) in &builtin.engines {
             let path = dir.join(format!("builtin.{name}.toml"));

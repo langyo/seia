@@ -26,7 +26,10 @@ async fn test_duckduckgo_smoke() {
         .await
     {
         Ok(result) => {
-            assert!(!result.items.is_empty(), "should return at least one result");
+            assert!(
+                !result.items.is_empty(),
+                "should return at least one result"
+            );
             for item in &result.items {
                 assert!(!item.title.is_empty());
                 assert!(!item.url.is_empty());
@@ -56,7 +59,10 @@ async fn test_wikipedia_smoke() {
         .search("Rust programming language", Engine::Wikipedia)
         .await
         .expect("Wikipedia search should succeed");
-    assert!(!result.items.is_empty(), "should return at least one result");
+    assert!(
+        !result.items.is_empty(),
+        "should return at least one result"
+    );
     for item in &result.items {
         assert!(!item.title.is_empty());
         assert!(item.url.starts_with("https://"), "URL should be HTTPS");
@@ -178,7 +184,10 @@ async fn test_custom_github_search() {
     let client = client().with_registry(registry);
 
     let result = client
-        .search("fn main language:rust repo:rust-lang/rust", Engine::Custom("github".into()))
+        .search(
+            "fn main language:rust repo:rust-lang/rust",
+            Engine::Custom("github".into()),
+        )
         .await
         .expect("GitHub code search should succeed");
     assert!(!result.items.is_empty());

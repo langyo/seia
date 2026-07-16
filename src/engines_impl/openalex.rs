@@ -95,10 +95,8 @@ mod tests {
 
     #[test]
     fn invert_abstract_basic() {
-        let ai: serde_json::Value = serde_json::from_str(
-            r#"{"hello":[0],"world":[1],"rust":[2]}"#,
-        )
-        .unwrap();
+        let ai: serde_json::Value =
+            serde_json::from_str(r#"{"hello":[0],"world":[1],"rust":[2]}"#).unwrap();
         let result = invert_abstract(&ai);
         assert_eq!(result, "hello world rust");
     }

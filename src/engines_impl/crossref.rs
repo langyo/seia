@@ -34,7 +34,12 @@ pub async fn search(
             let snippet = w.r#abstract.clone().or_else(|| w.container_title());
             let title = w.title.unwrap_or_default();
             let url = w.url.unwrap_or(w.doi);
-            SearchItem { title, url, snippet, content: None }
+            SearchItem {
+                title,
+                url,
+                snippet,
+                content: None,
+            }
         })
         .collect();
 
@@ -68,6 +73,8 @@ struct CrWork {
 
 impl CrWork {
     fn container_title(&self) -> Option<String> {
-        self.container_title.as_ref().and_then(|v| v.first().cloned())
+        self.container_title
+            .as_ref()
+            .and_then(|v| v.first().cloned())
     }
 }
