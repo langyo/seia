@@ -1,0 +1,105 @@
+//! Smoke tests against free public search APIs (no key required).
+//!
+//! These tests hit real endpoints, so they are `#[ignore]` by default.
+//! Run them locally with:
+//!
+//! ```bash
+//! cargo test --test live_search -- --ignored --test-threads=1
+//! ```
+//!
+//! The CI runs them on a daily cron schedule (see `.github/workflows/live-tests.yml`).
+
+use seia::{Engine, SearchClient, SearchItem, SearchOptions};
+
+fn client() -> SearchClient {
+    SearchClient::new()
+}
+
+/// DuckDuckGo HTML scraping — free, no key, but fragile HTML parsing.
+#[tokio::test]
+#[ignore = "requires network access"]
+async fn test_duckduckgo_smoke() {
+    let result = client()
+        .search("rust programming language", Engine::Duckduckgo)
+        .await
+        .expect("DuckDuckGo search should succeed");
+    assert!(!result.items.is_empty(), "should return at least one result");
+    for item in &result.items {
+        assert!(!item.title.is_empty(), "title should not be empty");
+        assert!(!item.url.is_empty(), "url should not be empty");
+    }
+}
+
+/// Wikipedia API — free, unlimited, stable JSON response.
+#[tokio::test]
+#[ignore = "requires network access"]
+async fn test_wikipedia_smoke() {
+    let result = client()
+        .search("Rust programming language", Engine::Wikipedia)
+        .await
+        .expect("Wikipedia search should succeed");
+    assert!(!result.items.is_empty(), "should return at least one result");
+    for item in &result.items {
+        assert!(!item.title.is_empty());
+        assert!(item.url.starts_with("https://"), "URL should be HTTPS");
+    }
+}
+
+/// DuckDuckGo with content fetching enabled.
+#[tokio::test]
+#[ignore = "requires network access"]
+async fn test_duckduckgo_fetch_content() {
+    let opts = SearchOptions {
+        fetch_content: true,
+        limit: Some(3),
+        ..Default::default()
+    };
+    let result = client()
+        .search_with_options("hello world", Engine::Duckduckgo, opts)
+        .await
+        .expect("DuckDuckGo with fetch should succeed");
+    assert!(!result.items.is_empty());
+    // Some items may fail to fetch (robots.txt, etc.), but the search itself succeeds.
+}
+
+/// Custom engine — GitHub Code Search via TOML config simulation.
+#[tokio::test]
+#[ignore = "requires GITHUB_TOKEN in env"]
+async fn test_custom_github_search() {
+    use seia::config::{CustomEngineDef, EngineRegistry};
+    use std::collections::HashMap;
+
+    let def = CustomEngineDef {
+        label: "GitHub Code Search".into(),
+        method: "GET".into(),
+        url: "https://api.github.com/search/code".into(),
+        query_param: Some("q".into()),
+        body_template: None,
+        headers: {
+            let mut h = HashMap::new();
+            h.insert("Accept".into(), "application/vnd.github.v3+json".into());
+            h.insert("Authorization".into(), "Bearer ${GITHUB_TOKEN}".into());
+            h
+        },
+        result_path: Some("$.items[*]".into()),
+        title_field: "name".into(),
+        url_field: "html_url".into(),
+        snippet_field: Some("repository.full_name".into()),
+        pre_request: None,
+        limit_param: None,
+    };
+
+    let mut registry = EngineRegistry::default();
+    registry.engines.insert("github".into(), def);
+    let client = client().with_registry(registry);
+
+    let result = client
+        .search("fn main language:rust repo:rust-lang/rust", Engine::Custom("github".into()))
+        .await
+        .expect("GitHub code search should succeed");
+    assert!(!result.items.is_empty());
+    for item in &result.items {
+        assert!(!item.title.is_empty());
+        assert!(!item.url.is_empty());
+    }
+}

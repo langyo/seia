@@ -155,8 +155,8 @@ impl EngineRegistry {
         if let Some(home) = dirs::home_dir() {
             let user_config = home.join(".seia").join("engines.toml");
             if user_config.is_file() {
-                let content =
-                    std::fs::read_to_string(&user_config).context("reading ~/.seia/engines.toml")?;
+                let content = std::fs::read_to_string(&user_config)
+                    .context("reading ~/.seia/engines.toml")?;
                 let cfg: ConfigFile =
                     toml::from_str(&content).context("parsing ~/.seia/engines.toml")?;
                 registry.merge(cfg);
@@ -165,10 +165,8 @@ impl EngineRegistry {
 
         let local_config = PathBuf::from("seia.toml");
         if local_config.is_file() {
-            let content =
-                std::fs::read_to_string(&local_config).context("reading ./seia.toml")?;
-            let cfg: ConfigFile =
-                toml::from_str(&content).context("parsing ./seia.toml")?;
+            let content = std::fs::read_to_string(&local_config).context("reading ./seia.toml")?;
+            let cfg: ConfigFile = toml::from_str(&content).context("parsing ./seia.toml")?;
             registry.merge(cfg);
         }
 

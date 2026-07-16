@@ -26,12 +26,18 @@ impl SearchClient {
     /// TLS / system configuration issue).
     #[must_use]
     pub fn new() -> Self {
+        // Ensure a rustls crypto provider is installed (reqwest uses
+        // rustls-no-provider, which defers this to the caller).
+        let _ = rustls::crypto::ring::default_provider().install_default();
         let http = reqwest::Client::builder()
             .user_agent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36")
             .timeout(std::time::Duration::from_secs(15))
             .build()
             .expect("failed to build HTTP client");
-        Self { http, registry: EngineRegistry::default() }
+        Self {
+            http,
+            registry: EngineRegistry::default(),
+        }
     }
 
     /// Create a client with a proxy (e.g. `<http://localhost:7890>`).
@@ -41,13 +47,17 @@ impl SearchClient {
     ///
     /// Returns `Err` on an invalid proxy URL.
     pub fn with_proxy(proxy_url: &str) -> Result<Self> {
+        let _ = rustls::crypto::ring::default_provider().install_default();
         let proxy = reqwest::Proxy::all(proxy_url)?;
         let http = reqwest::Client::builder()
             .user_agent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36")
             .proxy(proxy)
             .timeout(std::time::Duration::from_secs(15))
             .build()?;
-        Ok(Self { http, registry: EngineRegistry::default() })
+        Ok(Self {
+            http,
+            registry: EngineRegistry::default(),
+        })
     }
 
     /// Load custom engine definitions from the standard config paths

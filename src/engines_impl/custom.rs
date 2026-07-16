@@ -30,31 +30,28 @@ pub async fn search(
     _engine_name: &str,
 ) -> Result<EngineOutput> {
     let limit = opts.limit.unwrap_or(10);
-    let rendered_url = def.render(&def.url, query, limit);
 
     let method = def.method.to_uppercase();
+    let mut rendered_url = def.render(&def.url, query, limit);
     let mut req = match method.as_str() {
         "GET" => {
-            let mut url = rendered_url;
             if let Some(ref qp) = def.query_param {
                 let encoded = crate::utils::urlencode_query(query);
-                let sep = if url.contains('?') { "&" } else { "?" };
-                url = format!("{url}{sep}{qp}={encoded}");
+                let sep = if rendered_url.contains('?') { "&" } else { "?" };
+                rendered_url = format!("{}{}{}={}", rendered_url, sep, qp, encoded);
             }
             if let Some(ref lp) = def.limit_param {
-                let sep = if url.contains('?') { "&" } else { "?" };
-                url = format!("{url}{sep}{lp}={limit}");
+                let sep = if rendered_url.contains('?') { "&" } else { "?" };
+                rendered_url = format!("{}{}{}={}", rendered_url, sep, lp, limit);
             }
-            http.get(&url)
+            http.get(&rendered_url)
         }
         "POST" => {
             let body = def
                 .body_template
                 .as_ref()
                 .map(|b| def.render(b, query, limit))
-                .unwrap_or_else(|| {
-                    serde_json::json!({"query": query, "limit": limit}).to_string()
-                });
+                .unwrap_or_else(|| serde_json::json!({"query": query, "limit": limit}).to_string());
             http.post(&rendered_url).body(body)
         }
         other => return Err(anyhow!("unsupported HTTP method: {other}")),
@@ -85,10 +82,7 @@ pub async fn search(
         return Err(anyhow!("HTTP {status}: {}", truncate(&body, 400)));
     }
 
-    let json: Value = resp
-        .json()
-        .await
-        .context("parsing JSON response")?;
+    let json: Value = resp.json().await.context("parsing JSON response")?;
 
     let items = extract_items(&json, def).context("extracting search results")?;
 
@@ -152,7 +146,122 @@ fn truncate(s: &str, max: usize) -> String {
     crate::utils::truncate(s, max)
 }
 
-// ── Tests ──────────────────────────────────────────────────────────
+#[cfg(feature = "pre-request-script")]
+fn run_pre_request_script(
+    _req: reqwest::RequestBuilder,
+    script: &str,
+    query: &str,
+    limit: usize,
+    url: &str,
+    method: &str,
+) -> Result<reqwest::RequestBuilder> {
+    use boa_engine::{
+        Context, JsObject, JsString, JsValue, Source, js_string, property::Attribute,
+    };
+
+    let mut ctx = Context::default();
+
+    let req_obj = JsObject::default();
+
+    req_obj
+        .create_data_property(js_string!("url"), JsString::from(url), &mut ctx)
+        .map_err(|e| anyhow!("boa: failed to set req.url: {e}"))?;
+
+    req_obj
+        .create_data_property(js_string!("method"), JsString::from(method), &mut ctx)
+        .map_err(|e| anyhow!("boa: failed to set req.method: {e}"))?;
+
+    req_obj
+        .create_data_property(js_string!("query"), JsString::from(query), &mut ctx)
+        .map_err(|e| anyhow!("boa: failed to set req.query: {e}"))?;
+
+    req_obj
+        .create_data_property(
+            js_string!("limit"),
+            JsValue::Integer(limit as i32),
+            &mut ctx,
+        )
+        .map_err(|e| anyhow!("boa: failed to set req.limit: {e}"))?;
+
+    let headers_obj = JsObject::default();
+    req_obj
+        .create_data_property(
+            js_string!("headers"),
+            JsValue::Object(headers_obj),
+            &mut ctx,
+        )
+        .map_err(|e| anyhow!("boa: failed to set req.headers: {e}"))?;
+
+    req_obj
+        .create_data_property(js_string!("body"), JsString::from(""), &mut ctx)
+        .map_err(|e| anyhow!("boa: failed to set req.body: {e}"))?;
+
+    ctx.register_global_property(
+        js_string!("req"),
+        JsValue::Object(req_obj.clone()),
+        Attribute::all(),
+    )
+    .map_err(|e| anyhow!("boa: register_global_property failed: {e}"))?;
+
+    ctx.eval(Source::from_bytes(script))
+        .map_err(|e| anyhow!("boa: pre-request script failed: {e}"))?;
+
+    let new_url = req_obj
+        .get(js_string!("url"), &mut ctx)
+        .ok()
+        .and_then(|v| v.as_string().map(|s| s.to_std_string_escaped()))
+        .unwrap_or_else(|| url.to_string());
+
+    let mut new_headers: Vec<(String, String)> = Vec::new();
+    if let Ok(JsValue::Object(hdrs)) = req_obj.get(js_string!("headers"), &mut ctx) {
+        if let Ok(prop_keys) = hdrs.own_property_keys(&mut ctx) {
+            for pk in prop_keys {
+                if let Ok(val) = hdrs.get(pk.clone(), &mut ctx) {
+                    let val_str = val
+                        .as_string()
+                        .map(|s| s.to_std_string_escaped())
+                        .unwrap_or_default();
+                    let key_str = match &pk {
+                        boa_engine::property::PropertyKey::String(s) => s.to_std_string_escaped(),
+                        other => format!("{other}"),
+                    };
+                    new_headers.push((key_str, val_str));
+                }
+            }
+        }
+    }
+
+    let new_body = req_obj
+        .get(js_string!("body"), &mut ctx)
+        .ok()
+        .and_then(|v| v.as_string().map(|s| s.to_std_string_escaped()));
+
+    let mut req = if new_url != url {
+        match method {
+            "GET" => reqwest::Client::new().get(&new_url),
+            "POST" => reqwest::Client::new().post(&new_url),
+            _ => {
+                return Err(anyhow!(
+                    "unsupported method after pre-request script: {method}"
+                ));
+            }
+        }
+    } else {
+        _req
+    };
+
+    for (k, v) in new_headers {
+        req = req.header(&k, &v);
+    }
+
+    if let Some(b) = new_body {
+        if !b.is_empty() && method == "POST" {
+            req = req.body(b);
+        }
+    }
+
+    Ok(req)
+}
 
 #[cfg(test)]
 mod tests {
@@ -268,106 +377,4 @@ mod tests {
         assert_eq!(items[0].url, "https://github.com/rust-lang/rust");
         assert_eq!(items[0].snippet.as_deref(), Some("main.rs"));
     }
-}
-
-// ── Pre-request scripting (Boa JS engine) ──────────────────────────
-
-#[cfg(feature = "pre-request-script")]
-fn run_pre_request_script(
-    mut req: reqwest::RequestBuilder,
-    script: &str,
-    query: &str,
-    limit: usize,
-    url: &str,
-    method: &str,
-) -> Result<reqwest::RequestBuilder> {
-    use boa_engine::{Context, Source, property::Attribute};
-    use boa_stdlib::load_default;
-
-    let js_ctx = &mut Context::default();
-    load_default(js_ctx).context("loading Boa stdlib")?;
-
-    // Expose the `req` mutator object to JS.
-    let req_obj = {
-        let obj = boa_engine::object::Object::default();
-
-        let url_js = boa_engine::JsValue::String(boa_engine::JsString::from(url));
-        let _ = obj.set("url", url_js, false, js_ctx);
-
-        let method_js = boa_engine::JsValue::String(boa_engine::JsString::from(method));
-        let _ = obj.set("method", method_js, false, js_ctx);
-
-        let query_js = boa_engine::JsValue::String(boa_engine::JsString::from(query));
-        let _ = obj.set("query", query_js, false, js_ctx);
-
-        let limit_js = boa_engine::JsValue::Integer(limit as i32);
-        let _ = obj.set("limit", limit_js, false, js_ctx);
-
-        // headers: an empty object the script can mutate.
-        let headers_obj = boa_engine::object::Object::default();
-        let _ = obj.set(
-            "headers",
-            boa_engine::JsValue::Object(headers_obj.clone()),
-            false,
-            js_ctx,
-        );
-
-        // body: mutable string.
-        let body_js = boa_engine::JsValue::String(boa_engine::JsString::from(""));
-        let _ = obj.set("body", body_js, false, js_ctx);
-
-        obj
-    };
-
-    js_ctx
-        .register_global_property("req", req_obj.clone(), Attribute::all())
-        .context("registering req")?;
-
-    js_ctx
-        .eval(Source::from_bytes(script))
-        .context("executing pre-request script")?;
-
-    // Read back mutated values.
-    let new_url = req_obj
-        .get("url", js_ctx)
-        .and_then(|v| v.as_string().map(|s| s.to_std_string_escaped()))
-        .unwrap_or_else(|| url.to_string());
-
-    let new_headers: Vec<(String, String)> = req_obj
-        .get("headers", js_ctx)
-        .and_then(|v| v.as_object().cloned())
-        .map(|obj| {
-            obj.properties()
-                .map(|(k, v)| {
-                    let val = v.as_string().map(|s| s.to_std_string_escaped()).unwrap_or_default();
-                    (k.to_string(), val)
-                })
-                .collect()
-        })
-        .unwrap_or_default();
-
-    let new_body = req_obj
-        .get("body", js_ctx)
-        .and_then(|v| v.as_string().map(|s| s.to_std_string_escaped()));
-
-    // Rebuild the request.
-    if new_url != url {
-        req = match method {
-            "GET" => reqwest::Client::new().get(&new_url),
-            "POST" => reqwest::Client::new().post(&new_url),
-            _ => return Err(anyhow!("unsupported method in pre-request: {method}")),
-        };
-    }
-
-    for (k, v) in new_headers {
-        req = req.header(&k, &v);
-    }
-
-    if let Some(b) = new_body {
-        if !b.is_empty() && method == "POST" {
-            req = req.body(b);
-        }
-    }
-
-    Ok(req)
 }

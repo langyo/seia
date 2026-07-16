@@ -37,6 +37,30 @@ title_field = "name"
 url_field = "links.npm"
 snippet_field = "description"
 
+# ── crates.io Search ─────────────────────────────────────────
+[engines.crates-io]
+label = "crates.io"
+method = "GET"
+url = "https://crates.io/api/v1/crates"
+query_param = "q"
+result_path = "$.crates[*]"
+title_field = "name"
+url_field = "homepage"
+snippet_field = "description"
+
+# ── Stack Exchange (Stack Overflow) ───────────────────────────
+[engines.stackoverflow]
+label = "Stack Overflow"
+method = "GET"
+url = "https://api.stackexchange.com/2.3/search/advanced"
+query_param = "q"
+limit_param = "pagesize"
+headers = { Accept = "application/json" }
+result_path = "$.items[*]"
+title_field = "title"
+url_field = "link"
+snippet_field = "owner.display_name"
+
 # ── Postman Echo (for testing) ───────────────────────────────────
 [engines.postman-echo]
 label = "Postman Echo (Test)"
