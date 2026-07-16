@@ -1,0 +1,73 @@
+# seia custom engine configuration — example
+#
+# Place this file at ~/.seia/engines.toml (user-global) or ./seia.toml
+# (project-local).  Define any number of custom search engines under
+# the [engines.<name>] sections below.
+#
+# Supported template variables:
+#   {{query}} — URL-encoded search term
+#   {{limit}} — max-results count
+#   ${ENV_VAR} — environment variable substitution
+#
+# JSONPath result_path examples:
+#   $.items[*]        — array under "items" key
+#   $.data.results[*] — nested array
+#   (absent)          — root JSON is treated as the result list or object
+
+# ── GitHub Code Search ───────────────────────────────────────────
+[engines.github]
+label = "GitHub Code Search"
+method = "GET"
+url = "https://api.github.com/search/code"
+query_param = "q"
+headers = { Authorization = "Bearer ${GITHUB_TOKEN}", Accept = "application/vnd.github.v3+json" }
+result_path = "$.items[*]"
+title_field = "name"
+url_field = "html_url"
+snippet_field = "repository.full_name"
+
+# ── npm Registry Search ──────────────────────────────────────────
+[engines.npm]
+label = "npm Registry"
+method = "GET"
+url = "https://registry.npmjs.org/-/v1/search"
+query_param = "text"
+result_path = "$.objects[*].package"
+title_field = "name"
+url_field = "links.npm"
+snippet_field = "description"
+
+# ── Postman Echo (for testing) ───────────────────────────────────
+[engines.postman-echo]
+label = "Postman Echo (Test)"
+method = "GET"
+url = "https://postman-echo.com/get"
+query_param = "q"
+result_path = "$.args"
+
+# ── Generic POST-style engine ────────────────────────────────────
+# [engines.my-search]
+# label = "My Custom Search"
+# method = "POST"
+# url = "https://api.example.com/v1/search"
+# headers = { Content-Type = "application/json", Authorization = "Bearer ${MY_API_KEY}" }
+# body_template = '{"query": "{{query}}", "max_results": {{limit}}}'
+# result_path = "$.result.hits[*]"
+# title_field = "doc_title"
+# url_field = "doc_url"
+# snippet_field = "doc_summary"
+
+# ── Pre-request script example (requires `pre-request-script` feature) ──
+# [engines.signed-api]
+# label = "Signed API"
+# method = "POST"
+# url = "https://api.example.com/v2/query"
+# body_template = '{"q": "{{query}}", "limit": {{limit}}}'
+# pre_request = """
+#   const hmac = req.headers.get("X-Sign") || "";
+#   req.headers.set("X-Timestamp", Date.now().toString());
+#   req.headers.set("X-Query", req.body);
+# """
+# result_path = "$.data[*]"
+# title_field = "title"
+# url_field = "url"

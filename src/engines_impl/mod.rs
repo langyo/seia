@@ -3,6 +3,7 @@
 pub mod bing;
 pub mod bocha;
 pub mod brave;
+pub mod custom;
 pub mod duckduckgo;
 pub mod metaso;
 pub mod searxng;

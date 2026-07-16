@@ -40,12 +40,21 @@ tokio-stream = "^0.1"
 # MCP (optional, for standalone MCP server)
 rmcp = { version = "^2", optional = true, features = ["server", "transport-io", "macros", "schemars"] }
 schemars = { version = "^1", optional = true, features = ["derive"] }
+# Custom engine config
+toml = "^0.8"
+jsonpath-rust = "^0.7"
+dirs = "^6"
+# Optional: Boa JS engine for pre-request scripts in custom engines
+boa_engine = { version = "^0.20", optional = true }
 
 [features]
 default = []
 # Standalone MCP (Model Context Protocol) server exposing the search tools over
 # stdio. Requires rmcp + schemars; pulls in tokio io-std at the binary level.
 mcp = ["dep:rmcp", "dep:schemars", "tokio/io-std"]
+# Enable pre-request JavaScript scripting (Postman-style) in custom engines.
+# Pulls in the Boa JS engine (~5 MB extra binary size).
+pre-request-script = ["dep:boa_engine"]
 
 [dev-dependencies]
 tokio-test = "^0.4"

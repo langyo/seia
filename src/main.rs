@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 use tracing_subscriber::EnvFilter;
 
-use seia::{Engine, SearchClient};
+use seia::{Engine, SearchClient, config::EngineRegistry};
 
 #[derive(Parser)]
 #[command(name = "seia", about = "One query, every search engine.")]
@@ -17,7 +17,7 @@ enum Command {
         query: String,
 
         #[arg(short, long, value_enum, default_value = "duckduckgo")]
-        engine: Engine,
+        engine: String,
 
         /// Output as JSON
         #[arg(long)]
@@ -48,6 +48,7 @@ async fn main() -> anyhow::Result<()> {
         .init();
 
     let cli = Cli::parse();
+    let registry = EngineRegistry::load().unwrap_or_default();
 
     match cli.cmd {
         Command::Search {
@@ -57,14 +58,15 @@ async fn main() -> anyhow::Result<()> {
             fetch,
             limit,
         } => {
-            let client = SearchClient::new();
+            let eng = parse_engine(&engine);
+            let client = SearchClient::new().with_registry(registry);
             let opts = seia::SearchOptions {
                 limit: Some(limit),
                 fetch_content: fetch,
                 searxng_url: None,
             };
 
-            let result = client.search_with_options(&query, engine, opts).await?;
+            let result = client.search_with_options(&query, eng, opts).await?;
 
             if json {
                 println!("{}", serde_json::to_string_pretty(&result)?);
@@ -90,7 +92,7 @@ async fn main() -> anyhow::Result<()> {
         }
 
         Command::Engines => {
-            println!("Available engines:");
+            println!("Built-in engines:");
             println!("  duckduckgo  — Free, HTML scraping, no key needed");
             println!("  wikipedia   — Free, unlimited, academic knowledge");
             println!("  searxng     — Self-hosted meta-search (SEARXNG_URL)");
@@ -100,6 +102,13 @@ async fn main() -> anyhow::Result<()> {
             println!("  zhipu       — 智谱 web_search tool (ZHIPU_API_KEY)");
             println!("  bocha       — 博查 Web Search API (BOCHA_API_KEY)");
             println!("  metaso      — 秘塔 Web Search API (METASO_API_KEY)");
+            if !registry.engines.is_empty() {
+                println!("\nCustom engines (from config):");
+                for (name, def) in &registry.engines {
+                    let method = def.method.to_uppercase();
+                    println!("  {name}  — {label} [{method}]", label = def.label);
+                }
+            }
         }
 
         #[cfg(feature = "mcp")]
@@ -109,6 +118,22 @@ async fn main() -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+fn parse_engine(raw: &str) -> Engine {
+    let lower = raw.to_ascii_lowercase();
+    match lower.as_str() {
+        "duckduckgo" | "ddg" => Engine::Duckduckgo,
+        "tavily" => Engine::Tavily,
+        "searxng" => Engine::Searxng,
+        "wikipedia" | "wiki" => Engine::Wikipedia,
+        "bing" => Engine::Bing,
+        "brave" => Engine::Brave,
+        "zhipu" => Engine::Zhipu,
+        "bocha" => Engine::Bocha,
+        "metaso" => Engine::Metaso,
+        other => Engine::Custom(other.to_string()),
+    }
 }
 
 fn truncate(s: &str, max: usize) -> String {
