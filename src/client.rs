@@ -17,8 +17,8 @@ impl Default for SearchClient {
 }
 
 impl SearchClient {
-    /// Creates a new search client with an empty engine registry.
-    /// Call `with_registry` to load custom engines.
+    /// Creates a new search client. Automatically honours `SEIA_PROXY`,
+    /// `HTTPS_PROXY`, and `ALL_PROXY` environment variables (in that order).
     ///
     /// # Panics
     ///
@@ -26,22 +26,26 @@ impl SearchClient {
     /// TLS / system configuration issue).
     #[must_use]
     pub fn new() -> Self {
-        // Ensure a rustls crypto provider is installed (reqwest uses
-        // rustls-no-provider, which defers this to the caller).
         let _ = rustls::crypto::ring::default_provider().install_default();
-        let http = reqwest::Client::builder()
+        let mut builder = reqwest::Client::builder()
             .user_agent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36")
-            .timeout(std::time::Duration::from_secs(15))
-            .build()
-            .expect("failed to build HTTP client");
+            .timeout(std::time::Duration::from_secs(15));
+
+        if let Some(proxy_url) = detect_proxy() {
+            if let Ok(proxy) = reqwest::Proxy::all(&proxy_url) {
+                builder = builder.proxy(proxy);
+            }
+        }
+
+        let http = builder.build().expect("failed to build HTTP client");
         Self {
             http,
             registry: EngineRegistry::default(),
         }
     }
 
-    /// Create a client with a proxy (e.g. `<http://localhost:7890>`).
-    /// Also respects `HTTPS_PROXY` / `HTTP_PROXY` env vars automatically.
+    /// Create a client with an explicit proxy URL (e.g. `http://localhost:7890`).
+    /// Overrides any auto-detected proxy.
     ///
     /// # Errors
     ///
@@ -184,4 +188,17 @@ impl Default for SearchOptions {
             searxng_url: None,
         }
     }
+}
+
+/// Auto-detect proxy from environment variables.
+/// Checks `SEIA_PROXY` first, then `HTTPS_PROXY`, then `ALL_PROXY`.
+fn detect_proxy() -> Option<String> {
+    for var in &["SEIA_PROXY", "HTTPS_PROXY", "ALL_PROXY"] {
+        if let Ok(val) = std::env::var(var) {
+            if !val.is_empty() {
+                return Some(val);
+            }
+        }
+    }
+    None
 }

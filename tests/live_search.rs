@@ -38,6 +38,7 @@ async fn test_duckduckgo_smoke() {
                 || msg.contains("Connect")
                 || msg.contains("timeout")
                 || msg.contains("dns error")
+                || msg.contains("CAPTCHA")
             {
                 eprintln!("[SKIP] DuckDuckGo unreachable (network restriction): {msg}");
             } else {

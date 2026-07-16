@@ -216,10 +216,7 @@ const ENGINES: &[(&str, Option<&str>)] = &[
 
 pub async fn run() -> Result<()> {
     let registry = EngineRegistry::load().unwrap_or_default();
-    let client = match std::env::var("SEIA_PROXY") {
-        Ok(p) if !p.is_empty() => SearchClient::with_proxy(&p)?.with_registry(registry),
-        _ => SearchClient::new().with_registry(registry),
-    };
+    let client = SearchClient::new().with_registry(registry);
     let server = Server { client };
     let transport = rmcp::transport::stdio();
     let server_handle = server.serve(transport).await?;

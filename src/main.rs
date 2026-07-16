@@ -30,6 +30,10 @@ enum Command {
         /// Max results
         #[arg(short, long, default_value = "10")]
         limit: usize,
+
+        /// HTTP/SOCKS proxy (e.g. http://localhost:7890). Overrides SEIA_PROXY / HTTPS_PROXY.
+        #[arg(long)]
+        proxy: Option<String>,
     },
 
     /// List available engines
@@ -57,9 +61,14 @@ async fn main() -> anyhow::Result<()> {
             json,
             fetch,
             limit,
+            proxy,
         } => {
             let eng = parse_engine(&engine);
-            let client = SearchClient::new().with_registry(registry);
+            let client = if let Some(ref proxy_url) = proxy {
+                SearchClient::with_proxy(proxy_url)?.with_registry(registry)
+            } else {
+                SearchClient::new().with_registry(registry)
+            };
             let opts = seia::SearchOptions {
                 limit: Some(limit),
                 fetch_content: fetch,
