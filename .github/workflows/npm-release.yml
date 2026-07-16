@@ -28,7 +28,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   build-subpackage:
@@ -125,7 +124,7 @@ jobs:
           echo "::group::npm pack $sub"
           (cd "$sub" && npm pack --dry-run)
           echo "::endgroup::"
-          (cd "$sub" && npm publish --access public --provenance)
+          (cd "$sub" && npm publish --access public)
 
   publish-root:
     name: Publish root @celestia-island/seia to npm
