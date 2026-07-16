@@ -168,6 +168,8 @@ async fn test_custom_github_search() {
         url_field: "html_url".into(),
         snippet_field: Some("repository.full_name".into()),
         pre_request: None,
+        help: None,
+        builtin: false,
         limit_param: None,
     };
 

@@ -185,25 +185,7 @@ fn parse_engine(name: Option<&str>, default: Engine) -> Engine {
     let Some(name) = name.map(str::trim).filter(|s| !s.is_empty()) else {
         return default;
     };
-    match name.to_ascii_lowercase().as_str() {
-        "duckduckgo" | "ddg" => Engine::Duckduckgo,
-        "tavily" => Engine::Tavily,
-        "searxng" => Engine::Searxng,
-        "wikipedia" | "wiki" => Engine::Wikipedia,
-        "bing" => Engine::Bing,
-        "brave" => Engine::Brave,
-        "zhipu" => Engine::Zhipu,
-        "bocha" => Engine::Bocha,
-        "metaso" => Engine::Metaso,
-        "semantic-scholar" | "semanticscholar" | "s2" => Engine::SemanticScholar,
-        "openalex" | "oa" => Engine::OpenAlex,
-        "arxiv" => Engine::Arxiv,
-        "core" => Engine::Core,
-        "crossref" => Engine::CrossRef,
-        "doaj" => Engine::Doaj,
-        "pubmed" | "pm" => Engine::PubMed,
-        other => Engine::Custom(other.to_string()),
-    }
+    Engine::from_name(name).unwrap_or_else(|| Engine::Custom(name.to_string()))
 }
 
 /// Static engine roster used by `seia_list_engines` (name → API-key env, if any).

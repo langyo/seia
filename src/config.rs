@@ -22,16 +22,18 @@
 use std::{collections::HashMap, path::PathBuf};
 
 use anyhow::{Context as _, Result};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Deserialize)]
+const BUILTIN_TOML: &str = include_str!("builtin_engines.toml");
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigFile {
     #[serde(default)]
     pub engines: HashMap<String, CustomEngineDef>,
 }
 
 /// A user-defined search engine specification.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct CustomEngineDef {
     /// Human-readable display name.
     pub label: String,
@@ -93,6 +95,14 @@ pub struct CustomEngineDef {
     /// provided, `?<param>=<limit>` is appended to GET requests.
     #[serde(default)]
     pub limit_param: Option<String>,
+
+    /// Whether this is a built-in engine (metadata only, for display).
+    #[serde(default)]
+    pub builtin: bool,
+
+    /// One-line help text shown in `seia engines`.
+    #[serde(default)]
+    pub help: Option<String>,
 }
 
 fn default_method() -> String {
@@ -144,33 +154,79 @@ pub struct EngineRegistry {
 }
 
 impl EngineRegistry {
-    /// Load from the standard config paths, merging in order:
-    /// 1. `~/.seia/engines.toml` (user-global)
-    /// 2. `./seia.toml` (project-local, overrides / extends)
-    ///
-    /// Missing files are silently skipped; parse errors are surfaced.
+    /// Load configs in priority order (lowest to highest):
+    /// 1. Embedded built-in definitions
+    /// 2. `~/.seia/engines/*.toml` (user overrides)
+    /// 3. `./seia.toml` (project-local)
     pub fn load() -> Result<Self> {
         let mut registry = Self::default();
 
+        let builtin: ConfigFile = toml::from_str(BUILTIN_TOML)
+            .context("parsing embedded builtin_engines.toml")?;
+        registry.merge(builtin);
+
         if let Some(home) = dirs::home_dir() {
-            let user_config = home.join(".seia").join("engines.toml");
-            if user_config.is_file() {
-                let content = std::fs::read_to_string(&user_config)
-                    .context("reading ~/.seia/engines.toml")?;
-                let cfg: ConfigFile =
-                    toml::from_str(&content).context("parsing ~/.seia/engines.toml")?;
-                registry.merge(cfg);
+            let user_dir = home.join(".seia").join("engines");
+            if user_dir.is_dir() {
+                if let Ok(entries) = std::fs::read_dir(&user_dir) {
+                    for entry in entries.filter_map(|e| e.ok()) {
+                        let path = entry.path();
+                        if path.extension().is_some_and(|e| e == "toml") {
+                            if let Ok(content) = std::fs::read_to_string(&path) {
+                                if let Ok(cfg) = toml::from_str::<ConfigFile>(&content) {
+                                    registry.merge(cfg);
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
         let local_config = PathBuf::from("seia.toml");
         if local_config.is_file() {
-            let content = std::fs::read_to_string(&local_config).context("reading ./seia.toml")?;
-            let cfg: ConfigFile = toml::from_str(&content).context("parsing ./seia.toml")?;
+            let content =
+                std::fs::read_to_string(&local_config).context("reading ./seia.toml")?;
+            let cfg: ConfigFile =
+                toml::from_str(&content).context("parsing ./seia.toml")?;
             registry.merge(cfg);
         }
 
         Ok(registry)
+    }
+
+    /// Write built-in engine definitions to `~/.seia/engines/`.
+    /// Does not overwrite existing files unless `force` is true.
+    pub fn install(force: bool) -> Result<PathBuf> {
+        let dir = dirs::home_dir()
+            .map(|h| h.join(".seia").join("engines"))
+            .ok_or_else(|| anyhow::anyhow!("cannot determine home directory"))?;
+        std::fs::create_dir_all(&dir)?;
+
+        let builtin: ConfigFile = toml::from_str(BUILTIN_TOML)
+            .context("parsing embedded builtin_engines.toml")?;
+
+        for (name, def) in &builtin.engines {
+            let path = dir.join(format!("builtin.{name}.toml"));
+            if path.exists() && !force {
+                continue;
+            }
+            let single = ConfigFile {
+                engines: {
+                    let mut m = HashMap::new();
+                    m.insert(name.clone(), def.clone());
+                    m
+                },
+            };
+            std::fs::write(&path, toml::to_string_pretty(&single)?)?;
+        }
+
+        Ok(dir)
+    }
+
+    /// Re-install built-in engine configs, overwriting any user changes.
+    pub fn reset() -> Result<PathBuf> {
+        Self::install(true)
     }
 
     fn merge(&mut self, cfg: ConfigFile) {
@@ -253,6 +309,7 @@ url = "https://example.com/search"
 
     #[test]
     fn render_templates() {
+        unsafe { std::env::set_var("TOKEN", "secret123") };
         let def = CustomEngineDef {
             label: "T".into(),
             method: "GET".into(),
@@ -266,8 +323,8 @@ url = "https://example.com/search"
             snippet_field: None,
             pre_request: None,
             limit_param: None,
+            ..Default::default()
         };
-        unsafe { std::env::set_var("TOKEN", "secret123") };
         let rendered = def.render(&def.url, "hello world", 20);
         assert!(rendered.contains("q=hello%20world"));
         assert!(rendered.contains("n=20"));
@@ -290,6 +347,7 @@ url = "https://example.com/search"
             snippet_field: None,
             pre_request: None,
             limit_param: None,
+            ..Default::default()
         };
         let rendered = def.render(&def.url, "q", 5);
         assert!(rendered.ends_with("t="));

@@ -312,6 +312,8 @@ mod tests {
             url_field: "url".into(),
             snippet_field: None,
             pre_request: None,
+            help: None,
+            builtin: false,
             limit_param: None,
         };
         let items = extract_items(&json, &def).unwrap();
@@ -338,6 +340,8 @@ mod tests {
             url_field: "link".into(),
             snippet_field: None,
             pre_request: None,
+            help: None,
+            builtin: false,
             limit_param: None,
         };
         let items = extract_items(&json, &def).unwrap();
@@ -369,6 +373,8 @@ mod tests {
             url_field: "repository.html_url".into(),
             snippet_field: Some("name".into()),
             pre_request: None,
+            help: None,
+            builtin: false,
             limit_param: None,
         };
         let items = extract_items(&json, &def).unwrap();

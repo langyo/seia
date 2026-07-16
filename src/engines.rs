@@ -76,6 +76,32 @@ impl Engine {
     pub const fn needs_key(&self) -> bool {
         self.api_key_env().is_some()
     }
+
+    /// Parse engine name to variant. Returns `None` for unknown names
+    /// (use `Engine::Custom(name)` instead).
+    #[must_use]
+    pub fn from_name(name: &str) -> Option<Self> {
+        let lower = name.to_ascii_lowercase();
+        match lower.as_str() {
+            "duckduckgo" | "ddg" => Some(Self::Duckduckgo),
+            "tavily" => Some(Self::Tavily),
+            "searxng" => Some(Self::Searxng),
+            "wikipedia" | "wiki" => Some(Self::Wikipedia),
+            "bing" => Some(Self::Bing),
+            "brave" => Some(Self::Brave),
+            "zhipu" => Some(Self::Zhipu),
+            "bocha" => Some(Self::Bocha),
+            "metaso" => Some(Self::Metaso),
+            "semantic-scholar" | "semanticscholar" | "s2" => Some(Self::SemanticScholar),
+            "openalex" | "oa" => Some(Self::OpenAlex),
+            "arxiv" => Some(Self::Arxiv),
+            "core" => Some(Self::Core),
+            "crossref" => Some(Self::CrossRef),
+            "doaj" => Some(Self::Doaj),
+            "pubmed" | "pm" => Some(Self::PubMed),
+            _ => None,
+        }
+    }
 }
 
 impl std::fmt::Display for Engine {

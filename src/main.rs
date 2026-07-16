@@ -15,23 +15,14 @@ enum Command {
     /// Search the web
     Search {
         query: String,
-
         #[arg(short, long, value_enum, default_value = "duckduckgo")]
         engine: String,
-
-        /// Output as JSON
         #[arg(long)]
         json: bool,
-
-        /// Fetch full page content for each result
         #[arg(long)]
         fetch: bool,
-
-        /// Max results
         #[arg(short, long, default_value = "10")]
         limit: usize,
-
-        /// HTTP/SOCKS proxy (e.g. http://localhost:7890). Overrides SEIA_PROXY / HTTPS_PROXY.
         #[arg(long)]
         proxy: Option<String>,
     },
@@ -39,8 +30,14 @@ enum Command {
     /// List available engines
     Engines,
 
-    /// Run the MCP (Model Context Protocol) server on stdio, exposing the
-    /// search tools to AI coding assistants.
+    /// Write built-in engine configs to ~/.seia/engines/
+    #[command(name = "engines-install")]
+    EnginesInstall,
+
+    /// Reset built-in engine configs to defaults, overwriting user changes
+    #[command(name = "engines-reset")]
+    EnginesReset,
+
     #[cfg(feature = "mcp")]
     Mcp,
 }
@@ -101,35 +98,53 @@ async fn main() -> anyhow::Result<()> {
         }
 
         Command::Engines => {
-            println!("Free (no key):");
-            println!("  duckduckgo         — DuckDuckGo HTML scraping");
-            println!("  wikipedia          — Wikipedia API, unlimited");
-            println!("  semantic-scholar   — 200M+ academic papers");
-            println!("  openalex           — 250M+ scholarly works");
-            println!("  arxiv              — Preprints (physics, math, CS)");
-            println!("  crossref           — 150M+ DOI metadata records");
-            println!("  pubmed             — Biomedical literature");
-            println!("  doaj               — Open-access journal directory");
-            println!();
-            println!("Free (self-hosted):");
-            println!("  searxng            — Meta-search engine (SEARXNG_URL)");
-            println!();
-            println!("Paid / key required:");
-            println!("  core               — Open-access papers (CORE_API_KEY)");
-            println!("  tavily             — AI search API (TAVILY_API_KEY)");
-            println!("  bing               — Bing Web Search (BING_SEARCH_API_KEY)");
-            println!("  brave              — Brave Search (BRAVE_SEARCH_API_KEY)");
-            println!("  zhipu              — 智谱 web_search (ZHIPU_API_KEY)");
-            println!("  bocha              — 博查 Web Search (BOCHA_API_KEY)");
-            println!("  metaso             — 秘塔 Web Search (METASO_API_KEY)");
-            if !registry.engines.is_empty() {
-                println!();
-                println!("Custom (from config):");
-                for (name, def) in &registry.engines {
-                    println!("  {name:<20} — {} [{}]", def.label, def.method.to_uppercase());
+            let mut builtin = Vec::new();
+            let mut custom = Vec::new();
+            for (name, def) in &registry.engines {
+                if def.builtin {
+                    builtin.push((name.as_str(), def));
+                } else {
+                    custom.push((name.as_str(), def));
                 }
             }
+            builtin.sort_by_key(|(n, _)| *n);
+            custom.sort_by_key(|(n, _)| *n);
+
+            println!("Built-in ({}):", builtin.len());
+            for (name, def) in &builtin {
+                let key = Engine::from_name(name).and_then(|e| e.api_key_env());
+                let key_note = if key.is_some() { " [key]" } else { "" };
+                println!(
+                    "  {name:<22} — {}{}",
+                    def.help.as_deref().unwrap_or(&def.label),
+                    key_note
+                );
+            }
+            if !custom.is_empty() {
+                println!();
+                println!("Custom ({}):", custom.len());
+                for (name, def) in &custom {
+                    println!(
+                        "  {name:<22} — {} [{}]",
+                        def.label,
+                        def.method.to_uppercase()
+                    );
+                }
+            }
+            if builtin.is_empty() {
+                println!("Run `seia engines-install` to restore built-in configs.");
+            }
         }
+
+        Command::EnginesInstall => match EngineRegistry::install(false) {
+            Ok(dir) => println!("Installed built-in engine configs to {}", dir.display()),
+            Err(e) => eprintln!("Error: {e}"),
+        },
+
+        Command::EnginesReset => match EngineRegistry::reset() {
+            Ok(dir) => println!("Reset built-in engine configs in {}", dir.display()),
+            Err(e) => eprintln!("Error: {e}"),
+        },
 
         #[cfg(feature = "mcp")]
         Command::Mcp => {
@@ -141,26 +156,7 @@ async fn main() -> anyhow::Result<()> {
 }
 
 fn parse_engine(raw: &str) -> Engine {
-    let lower = raw.to_ascii_lowercase();
-    match lower.as_str() {
-        "duckduckgo" | "ddg" => Engine::Duckduckgo,
-        "tavily" => Engine::Tavily,
-        "searxng" => Engine::Searxng,
-        "wikipedia" | "wiki" => Engine::Wikipedia,
-        "bing" => Engine::Bing,
-        "brave" => Engine::Brave,
-        "zhipu" => Engine::Zhipu,
-        "bocha" => Engine::Bocha,
-        "metaso" => Engine::Metaso,
-        "semantic-scholar" | "semanticscholar" | "s2" => Engine::SemanticScholar,
-        "openalex" | "oa" => Engine::OpenAlex,
-        "arxiv" => Engine::Arxiv,
-        "core" => Engine::Core,
-        "crossref" => Engine::CrossRef,
-        "doaj" => Engine::Doaj,
-        "pubmed" | "pm" => Engine::PubMed,
-        other => Engine::Custom(other.to_string()),
-    }
+    Engine::from_name(raw).unwrap_or_else(|| Engine::Custom(raw.to_string()))
 }
 
 fn truncate(s: &str, max: usize) -> String {
