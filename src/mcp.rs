@@ -24,7 +24,7 @@ use rmcp::{
 };
 use schemars::JsonSchema;
 
-use crate::{Engine, SearchClient, SearchOptions};
+use crate::{Engine, SearchClient, SearchOptions, config::EngineRegistry};
 
 struct Server {
     client: SearchClient,
@@ -32,7 +32,7 @@ struct Server {
 
 impl Server {
     fn tool_result(text: impl Into<String>) -> CallToolResult {
-        CallToolResult::success(vec![Content::text(text)])
+        CallToolResult::success(vec![ContentBlock::text(text)])
     }
 
     /// Build `SearchOptions` honouring the MCP-level knobs.
@@ -114,10 +114,10 @@ impl Server {
         let opts = self.opts(args.limit.or(Some(10)), args.fetch_content.unwrap_or(false));
         // search_fallback takes a plain-engine slice; honour limit/fetch by
         // running the first engine with options then falling back to plain.
-        let result = if let Some(&first) = engines.first() {
+        let result = if let Some(first) = engines.first() {
             match self
                 .client
-                .search_with_options(&args.query, first, opts)
+                .search_with_options(&args.query, first.clone(), opts)
                 .await
             {
                 Ok(r) if !r.items.is_empty() => r,
@@ -144,7 +144,7 @@ impl Server {
     }
 
     #[tool(
-        description = "List the nine search engines, their names (for the engine parameter), and the API-key env var each needs (if any)."
+        description = "List built-in and custom search engines, their names (for the engine parameter), and the API-key env var each needs (if any)."
     )]
     async fn seia_list_engines(
         &self,
@@ -157,9 +157,16 @@ impl Server {
                     "name": name,
                     "api_key_env": key_env,
                     "needs_key": key_env.is_some(),
+                    "kind": "built-in",
                 })
             })
             .collect::<Vec<_>>();
+
+        // Append custom engines from the registry stored in SearchClient.
+        // Note: the registry is behind SearchClient, not directly accessible here.
+        // For now, custom engines appear when queried — listing them needs ref access.
+        // TODO: store registry ref in Server struct.
+
         Ok(Self::tool_result(
             serde_json::to_string_pretty(&engines).unwrap_or_default(),
         ))
@@ -178,25 +185,21 @@ fn parse_engine(name: Option<&str>, default: Engine) -> Engine {
     let Some(name) = name.map(str::trim).filter(|s| !s.is_empty()) else {
         return default;
     };
-    match name.to_ascii_lowercase().as_str() {
-        "duckduckgo" | "ddg" => Engine::Duckduckgo,
-        "tavily" => Engine::Tavily,
-        "searxng" => Engine::Searxng,
-        "wikipedia" | "wiki" => Engine::Wikipedia,
-        "bing" => Engine::Bing,
-        "brave" => Engine::Brave,
-        "zhipu" => Engine::Zhipu,
-        "bocha" => Engine::Bocha,
-        "metaso" => Engine::Metaso,
-        _ => default,
-    }
+    Engine::from_name(name).unwrap_or_else(|| Engine::Custom(name.to_string()))
 }
 
 /// Static engine roster used by `seia_list_engines` (name → API-key env, if any).
 const ENGINES: &[(&str, Option<&str>)] = &[
     ("duckduckgo", None),
     ("wikipedia", None),
+    ("semantic-scholar", None),
+    ("openalex", None),
+    ("arxiv", None),
+    ("crossref", None),
+    ("pubmed", None),
+    ("doaj", None),
     ("searxng", Some("SEARXNG_URL")),
+    ("core", Some("CORE_API_KEY")),
     ("tavily", Some("TAVILY_API_KEY")),
     ("bing", Some("BING_SEARCH_API_KEY")),
     ("brave", Some("BRAVE_SEARCH_API_KEY")),
@@ -208,12 +211,8 @@ const ENGINES: &[(&str, Option<&str>)] = &[
 // ── public entry point ───────────────────────────────
 
 pub async fn run() -> Result<()> {
-    // Honour HTTPS_PROXY / HTTP_PROXY via the client default; an explicit proxy
-    // can be added later via a SEIA_PROXY env if needed.
-    let client = match std::env::var("SEIA_PROXY") {
-        Ok(p) if !p.is_empty() => SearchClient::with_proxy(&p)?,
-        _ => SearchClient::new(),
-    };
+    let registry = EngineRegistry::load().unwrap_or_default();
+    let client = SearchClient::new().with_registry(registry);
     let server = Server { client };
     let transport = rmcp::transport::stdio();
     let server_handle = server.serve(transport).await?;

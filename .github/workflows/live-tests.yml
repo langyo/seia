@@ -1,0 +1,55 @@
+name: live free-platform tests
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch: {}
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+      - name: Smoke DuckDuckGo
+        run: cargo test --test live_search test_duckduckgo_smoke --features mcp -- --ignored --test-threads=1 --nocapture
+        env:
+          HTTPS_PROXY: ""
+          HTTP_PROXY: ""
+      - name: Smoke Wikipedia
+        run: cargo test --test live_search test_wikipedia_smoke --features mcp -- --ignored --test-threads=1 --nocapture
+        env:
+          HTTPS_PROXY: ""
+          HTTP_PROXY: ""
+      - name: Smoke Semantic Scholar
+        run: cargo test --test live_search test_semantic_scholar_smoke --features mcp -- --ignored --test-threads=1 --nocapture
+        env:
+          HTTPS_PROXY: ""
+          HTTP_PROXY: ""
+      - name: Smoke OpenAlex
+        run: cargo test --test live_search test_openalex_smoke --features mcp -- --ignored --test-threads=1 --nocapture
+        env:
+          HTTPS_PROXY: ""
+          HTTP_PROXY: ""
+      - name: Smoke arXiv
+        run: cargo test --test live_search test_arxiv_smoke --features mcp -- --ignored --test-threads=1 --nocapture
+        env:
+          HTTPS_PROXY: ""
+          HTTP_PROXY: ""
+      - name: Smoke CrossRef
+        run: cargo test --test live_search test_crossref_smoke --features mcp -- --ignored --test-threads=1 --nocapture
+        env:
+          HTTPS_PROXY: ""
+          HTTP_PROXY: ""
+      - name: Smoke PubMed
+        run: cargo test --test live_search test_pubmed_smoke --features mcp -- --ignored --test-threads=1 --nocapture
+        env:
+          HTTPS_PROXY: ""
+          HTTP_PROXY: ""
