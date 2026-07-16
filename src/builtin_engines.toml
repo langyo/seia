@@ -1,0 +1,183 @@
+# seia built-in engine definitions — compiled into the binary.
+# Engines listed here are available out of the box without any
+# configuration.  Users can override any engine by placing a
+# same-named entry in ~/.seia/engines/overrides.toml.
+#
+# Engine categories:
+#   [engines.<name>]
+#     label  = Human-readable name
+#     method = GET | POST
+#     url    = API endpoint (supports {{query}}, {{limit}}, ${ENV})
+#     query_param   = (GET) query-string parameter name
+#     limit_param   = (GET) per-page size parameter name
+#     body_template = (POST) JSON body template
+#     headers       = Extra HTTP headers
+#     result_path   = JSONPath to result array
+#     title_field   = Field name for title
+#     url_field     = Field name for URL
+#     snippet_field = Field name for description/snippet
+#     builtin       = true  (marks this as a built-in engine)
+#     help          = One-line description for `seia engines`
+
+# ── Free, no-key engines ────────────────────────────────────────
+
+[engines.semantic-scholar]
+label = "Semantic Scholar"
+method = "GET"
+url = "https://api.semanticscholar.org/graph/v1/paper/search"
+query_param = "query"
+limit_param = "limit"
+result_path = "$.data[*]"
+title_field = "title"
+url_field = "url"
+snippet_field = "abstract"
+builtin = true
+help = "200M+ academic papers, free"
+
+[engines.openalex]
+label = "OpenAlex"
+method = "GET"
+url = "https://api.openalex.org/works"
+query_param = "search"
+limit_param = "per_page"
+headers = { User-Agent = "mailto:seia@celestia-island.dev" }
+result_path = "$.results[*]"
+title_field = "title"
+url_field = "id"
+snippet_field = ""
+builtin = true
+help = "250M+ scholarly works, free"
+
+[engines.crossref]
+label = "CrossRef"
+method = "GET"
+url = "https://api.crossref.org/works"
+query_param = "query"
+limit_param = "rows"
+result_path = "$.message.items[*]"
+title_field = "title.0"
+url_field = "url.0"
+snippet_field = ""
+builtin = true
+help = "150M+ DOI metadata records, free"
+
+[engines.doaj]
+label = "DOAJ"
+method = "GET"
+url = "https://doaj.org/api/search/articles/{{query}}"
+limit_param = "pageSize"
+result_path = "$.results[*].bibjson"
+title_field = "title"
+url_field = ""
+snippet_field = ""
+builtin = true
+help = "Open-access journal directory, free"
+
+# ── Complex engines (Rust-backed) ───────────────────────────────
+# These have dedicated Rust implementations for HTML scraping,
+# multi-step APIs, XML parsing, or abstract reconstruction.
+# The TOML entries here serve as metadata (name, help text)
+# and user-overridable config.  The Rust code handles the
+# actual request/response logic.
+
+[engines.duckduckgo]
+label = "DuckDuckGo"
+method = "GET"
+url = "https://html.duckduckgo.com/html/"
+query_param = "q"
+builtin = true
+help = "HTML scraping, free, no key"
+
+[engines.wikipedia]
+label = "Wikipedia"
+method = "GET"
+url = "https://en.wikipedia.org/w/api.php"
+query_param = "srsearch"
+builtin = true
+help = "Wikipedia search API, free, unlimited"
+
+[engines.arxiv]
+label = "arXiv"
+method = "GET"
+url = "http://export.arxiv.org/api/query"
+query_param = "search_query"
+limit_param = "max_results"
+builtin = true
+help = "Preprints in physics, math, CS, free"
+
+[engines.pubmed]
+label = "PubMed"
+method = "_builtin_pubmed"
+builtin = true
+help = "Biomedical literature, free (NCBI_API_KEY for higher limits)"
+
+# ── Key-required engines ────────────────────────────────────────
+
+[engines.core]
+label = "CORE"
+method = "GET"
+url = "https://api.core.ac.uk/v3/search/works"
+query_param = "q"
+limit_param = "limit"
+headers = { Authorization = "Bearer ${CORE_API_KEY}" }
+result_path = "$.results[*]"
+title_field = "title"
+url_field = "downloadUrl"
+snippet_field = "abstract"
+builtin = true
+help = "Open-access papers (free key at core.ac.uk)"
+
+[engines.tavily]
+label = "Tavily"
+method = "POST"
+url = "https://api.tavily.com/search"
+body_template = '{"api_key": "${TAVILY_API_KEY}", "query": "{{query}}", "max_results": {{limit}}}'
+result_path = "$.results[*]"
+title_field = "title"
+url_field = "url"
+snippet_field = "content"
+builtin = true
+help = "AI search API (TAVILY_API_KEY, free 1K/month)"
+
+[engines.bing]
+label = "Bing"
+method = "_builtin_bing"
+builtin = true
+help = "Bing Web Search API (BING_SEARCH_API_KEY)"
+
+[engines.brave]
+label = "Brave"
+method = "_builtin_brave"
+builtin = true
+help = "Brave Search API (BRAVE_SEARCH_API_KEY)"
+
+[engines.zhipu]
+label = "Zhipu"
+method = "_builtin_zhipu"
+builtin = true
+help = "智谱 web_search (ZHIPU_API_KEY)"
+
+[engines.bocha]
+label = "Bocha"
+method = "_builtin_bocha"
+builtin = true
+help = "博查 Web Search (BOCHA_API_KEY)"
+
+[engines.metaso]
+label = "Metaso"
+method = "_builtin_metaso"
+builtin = true
+help = "秘塔 Web Search (METASO_API_KEY)"
+
+[engines.searxng]
+label = "SearXNG"
+method = "GET"
+url = "${SEARXNG_URL}/search"
+query_param = "q"
+limit_param = "limit"
+result_path = "$.results[*]"
+title_field = "title"
+url_field = "url"
+snippet_field = "content"
+builtin = true
+help = "Self-hosted meta-search (SEARXNG_URL)"

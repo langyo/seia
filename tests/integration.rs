@@ -198,7 +198,7 @@ mod tests {
             "METASO_API_KEY",
         ];
         let client = SearchClient::new();
-        for &engine in &[
+        for engine in &[
             Engine::Bing,
             Engine::Brave,
             Engine::Zhipu,
@@ -215,7 +215,7 @@ mod tests {
             if has_key {
                 continue;
             }
-            let result = client.search("test", engine).await;
+            let result = client.search("test", engine.clone()).await;
             assert!(result.is_err(), "{engine} should fail without its API key");
         }
     }

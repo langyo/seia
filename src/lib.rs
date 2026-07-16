@@ -5,6 +5,7 @@
 //! official API exists, lightweight HTML scraping).
 
 pub mod client;
+pub mod config;
 pub mod engines;
 pub mod engines_impl;
 pub mod extractor;

@@ -4,32 +4,33 @@ use serde::{Deserialize, Serialize};
 
 use clap::ValueEnum;
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, ValueEnum)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ValueEnum)]
 #[serde(rename_all = "lowercase")]
 pub enum Engine {
-    /// `DuckDuckGo` HTML scraping (free, no key).
     Duckduckgo,
-    /// Tavily API (AI-optimized, free tier 1K/month).
     Tavily,
-    /// `SearXNG` self-hosted meta-search.
     Searxng,
-    /// Wikipedia API (free, unlimited, academic knowledge).
     Wikipedia,
-    /// Bing Web Search API (paid, high quality).
     Bing,
-    /// Brave Search API (free tier available).
     Brave,
-    /// 智谱 (Zhipu / `BigModel`) `web_search` tool — domestic Chinese AI search.
     Zhipu,
-    /// 博查 (Bocha) Web Search API — domestic Chinese web search.
     Bocha,
-    /// 秘塔 (Metaso) Web Search API — ad-free domestic Chinese AI search.
     Metaso,
+    SemanticScholar,
+    OpenAlex,
+    Arxiv,
+    Core,
+    CrossRef,
+    Doaj,
+    PubMed,
+    /// User-defined custom engine (name from config).
+    #[value(skip)]
+    Custom(String),
 }
 
 impl Engine {
     #[must_use]
-    pub const fn as_str(self) -> &'static str {
+    pub fn as_str(&self) -> &str {
         match self {
             Self::Duckduckgo => "duckduckgo",
             Self::Tavily => "tavily",
@@ -40,12 +41,20 @@ impl Engine {
             Self::Zhipu => "zhipu",
             Self::Bocha => "bocha",
             Self::Metaso => "metaso",
+            Self::SemanticScholar => "semantic-scholar",
+            Self::OpenAlex => "openalex",
+            Self::Arxiv => "arxiv",
+            Self::Core => "core",
+            Self::CrossRef => "crossref",
+            Self::Doaj => "doaj",
+            Self::PubMed => "pubmed",
+            Self::Custom(name) => name.as_str(),
         }
     }
 
     /// Environment variable holding the API key (if applicable).
     #[must_use]
-    pub const fn api_key_env(self) -> Option<&'static str> {
+    pub const fn api_key_env(&self) -> Option<&'static str> {
         match self {
             Self::Tavily => Some("TAVILY_API_KEY"),
             Self::Bing => Some("BING_SEARCH_API_KEY"),
@@ -53,14 +62,45 @@ impl Engine {
             Self::Zhipu => Some("ZHIPU_API_KEY"),
             Self::Bocha => Some("BOCHA_API_KEY"),
             Self::Metaso => Some("METASO_API_KEY"),
+            Self::Core => Some("CORE_API_KEY"),
+            Self::CrossRef => None,
+            Self::Doaj => None,
+            Self::PubMed => None,
+            Self::Custom(_) => None,
             _ => None,
         }
     }
 
     /// Whether this engine needs an API key.
     #[must_use]
-    pub const fn needs_key(self) -> bool {
+    pub const fn needs_key(&self) -> bool {
         self.api_key_env().is_some()
+    }
+
+    /// Parse engine name to variant. Returns `None` for unknown names
+    /// (use `Engine::Custom(name)` instead).
+    #[must_use]
+    pub fn from_name(name: &str) -> Option<Self> {
+        let lower = name.to_ascii_lowercase();
+        match lower.as_str() {
+            "duckduckgo" | "ddg" => Some(Self::Duckduckgo),
+            "tavily" => Some(Self::Tavily),
+            "searxng" => Some(Self::Searxng),
+            "wikipedia" | "wiki" => Some(Self::Wikipedia),
+            "bing" => Some(Self::Bing),
+            "brave" => Some(Self::Brave),
+            "zhipu" => Some(Self::Zhipu),
+            "bocha" => Some(Self::Bocha),
+            "metaso" => Some(Self::Metaso),
+            "semantic-scholar" | "semanticscholar" | "s2" => Some(Self::SemanticScholar),
+            "openalex" | "oa" => Some(Self::OpenAlex),
+            "arxiv" => Some(Self::Arxiv),
+            "core" => Some(Self::Core),
+            "crossref" => Some(Self::CrossRef),
+            "doaj" => Some(Self::Doaj),
+            "pubmed" | "pm" => Some(Self::PubMed),
+            _ => None,
+        }
     }
 }
 
